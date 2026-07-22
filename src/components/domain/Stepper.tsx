@@ -18,7 +18,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
       aria-label="Progression du formulaire"
       className={cn('w-full', className)}
     >
-      <ol className="flex items-center justify-between gap-2">
+      <ol className="flex items-center justify-between gap-0.5 sm:gap-2">
         {steps.map((step, index) => {
           const isDone = index < currentStep
           const isActive = index === currentStep
@@ -26,7 +26,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
           return (
             <li
               key={step.id}
-              className="flex min-w-0 flex-1 flex-col items-center gap-2"
+              className="flex min-w-0 flex-1 flex-col items-center gap-1.5 sm:gap-2"
             >
               <div className="flex w-full items-center">
                 {index > 0 ? (
@@ -43,7 +43,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
 
                 <div
                   className={cn(
-                    'flex size-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors duration-200',
+                    'flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-semibold transition-colors duration-200 sm:size-9 sm:text-sm',
                     isDone
                       ? 'border-cnss-700 bg-cnss-700 text-white'
                       : isActive
@@ -53,7 +53,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
                   aria-current={isActive ? 'step' : undefined}
                 >
                   {isDone ? (
-                    <Check className="size-4" aria-hidden="true" />
+                    <Check className="size-3.5 sm:size-4" aria-hidden="true" />
                   ) : (
                     index + 1
                   )}
@@ -74,8 +74,14 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
 
               <span
                 className={cn(
-                  'hidden text-center text-xs font-medium sm:block',
-                  isActive ? 'text-cnss-800' : isDone ? 'text-cnss-700' : 'text-slate-400',
+                  'max-w-full truncate text-center text-[10px] font-medium leading-tight sm:text-xs',
+                  // Mobile : libellé de l’étape active seulement (parcours NPI à 6 étapes)
+                  isActive ? 'block' : 'hidden sm:block',
+                  isActive
+                    ? 'text-cnss-800'
+                    : isDone
+                      ? 'text-cnss-700'
+                      : 'text-slate-400',
                 )}
               >
                 {step.label}

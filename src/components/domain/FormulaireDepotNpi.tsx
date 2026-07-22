@@ -220,7 +220,7 @@ export function FormulaireDepotNpi() {
     : null
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-6 sm:space-y-8">
       <Stepper steps={[...STEPS]} currentStep={currentStep} />
 
       {currentStep === 0 ? (
@@ -247,10 +247,11 @@ export function FormulaireDepotNpi() {
                 <Alert variant="success">
                   Votre numéro CNSS est correct. Vous pouvez poursuivre.
                 </Alert>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">
                   <Button
                     type="button"
                     variant="outline"
+                    className="w-full sm:w-auto"
                     onClick={() => {
                       setCnssVerified(false)
                       setNumeroCNSS('')
@@ -259,7 +260,11 @@ export function FormulaireDepotNpi() {
                   >
                     Modifier
                   </Button>
-                  <Button type="button" onClick={() => setCurrentStep(1)}>
+                  <Button
+                    type="button"
+                    className="w-full sm:w-auto"
+                    onClick={() => setCurrentStep(1)}
+                  >
                     Continuer
                   </Button>
                 </div>
@@ -289,7 +294,11 @@ export function FormulaireDepotNpi() {
                   ) : null}
                 </div>
 
-                <Button type="submit" isLoading={verifyCnss.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  isLoading={verifyCnss.isPending}
+                >
                   Vérifier mon numéro
                 </Button>
               </form>
@@ -338,15 +347,20 @@ export function FormulaireDepotNpi() {
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">
                 <Button
                   type="button"
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => setCurrentStep(0)}
                 >
                   Retour
                 </Button>
-                <Button type="submit" isLoading={verifierNpi.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  isLoading={verifierNpi.isPending}
+                >
                   Vérifier le NPI
                 </Button>
               </div>
@@ -414,15 +428,20 @@ export function FormulaireDepotNpi() {
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">
                 <Button
                   type="button"
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => setCurrentStep(1)}
                 >
                   Retour
                 </Button>
-                <Button type="submit" isLoading={demanderOtp.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  isLoading={demanderOtp.isPending}
+                >
                   Envoyer le code
                 </Button>
               </div>
@@ -486,21 +505,27 @@ export function FormulaireDepotNpi() {
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">
                 <Button
                   type="button"
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => setCurrentStep(2)}
                   disabled={verifierOtpMutation.isPending}
                 >
                   Retour
                 </Button>
-                <Button type="submit" isLoading={verifierOtpMutation.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  isLoading={verifierOtpMutation.isPending}
+                >
                   Vérifier le code
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
+                  className="w-full sm:w-auto"
                   onClick={onResendOtp}
                   disabled={demanderOtp.isPending || verifierOtpMutation.isPending || !otpEmail}
                   isLoading={demanderOtp.isPending}
@@ -547,7 +572,7 @@ export function FormulaireDepotNpi() {
                 <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   NPI
                 </dt>
-                <dd className="mt-1 font-mono text-sm font-medium text-cnss-900">
+                <dd className="mt-1 break-all font-mono text-sm font-medium text-cnss-900">
                   {anipIdentite.npi}
                 </dd>
               </div>
@@ -572,9 +597,10 @@ export function FormulaireDepotNpi() {
                   <strong>{emailMasque}</strong> (celle du code OTP) pour recevoir
                   les notifications de cette demande ?
                 </Alert>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Button
                     type="button"
+                    className="w-full sm:w-auto"
                     onClick={() => finishDepot(otpEmail, otpEmailConfirmation)}
                     isLoading={deposerNpiMutation.isPending}
                   >
@@ -583,6 +609,7 @@ export function FormulaireDepotNpi() {
                   <Button
                     type="button"
                     variant="outline"
+                    className="w-full sm:w-auto"
                     onClick={() => setUseSameEmail(false)}
                     disabled={deposerNpiMutation.isPending}
                   >
@@ -640,16 +667,21 @@ export function FormulaireDepotNpi() {
                     </p>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">
                   <Button
                     type="button"
                     variant="outline"
+                    className="w-full sm:w-auto"
                     onClick={() => setUseSameEmail(null)}
                     disabled={deposerNpiMutation.isPending}
                   >
                     Retour
                   </Button>
-                  <Button type="submit" isLoading={deposerNpiMutation.isPending}>
+                  <Button
+                    type="submit"
+                    className="w-full sm:w-auto"
+                    isLoading={deposerNpiMutation.isPending}
+                  >
                     Déposer ma demande
                   </Button>
                 </div>
@@ -678,29 +710,31 @@ export function FormulaireDepotNpi() {
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                   Numéro de demande
                 </p>
-                <p className="mt-1 font-display text-lg font-bold text-cnss-800">
+                <p className="mt-1 break-all font-display text-base font-bold text-cnss-800 sm:text-lg">
                   {numeroDemande}
                 </p>
               </div>
 
               {anipIdentite ? (
-                <dl className="mt-6 w-full max-w-sm space-y-2 text-left text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-slate-500">Identité</dt>
-                    <dd className="font-medium text-cnss-900">
+                <dl className="mt-6 w-full max-w-sm space-y-3 text-left text-sm">
+                  <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
+                    <dt className="shrink-0 text-slate-500">Identité</dt>
+                    <dd className="break-words font-medium text-cnss-900 sm:text-right">
                       {anipIdentite.prenom} {anipIdentite.nom}
                     </dd>
                   </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-slate-500">NPI</dt>
-                    <dd className="font-medium text-cnss-900">{anipIdentite.npi}</dd>
+                  <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
+                    <dt className="shrink-0 text-slate-500">NPI</dt>
+                    <dd className="break-all font-medium text-cnss-900 sm:text-right">
+                      {anipIdentite.npi}
+                    </dd>
                   </div>
                 </dl>
               ) : null}
 
               <Link
                 to={`/suivi?numero=${encodeURIComponent(numeroDemande)}`}
-                className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-cnss-700 px-4 text-sm font-medium text-white transition-colors hover:bg-cnss-800"
+                className="mt-6 inline-flex h-11 w-full max-w-sm items-center justify-center rounded-lg bg-cnss-700 px-4 text-sm font-medium text-white transition-colors hover:bg-cnss-800 sm:h-10 sm:w-auto"
               >
                 Suivre ma demande
               </Link>

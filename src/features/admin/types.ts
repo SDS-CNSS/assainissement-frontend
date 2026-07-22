@@ -75,6 +75,13 @@ export interface TableauDeBordFilters {
   statut?: StatutDemande
 }
 
+export interface EvolutionPoint {
+  date: string
+  count: number
+  employeur: number
+  travailleur: number
+}
+
 export interface TableauDeBordStats {
   totalDemandes: number
   enAttenteN1: number
@@ -85,6 +92,8 @@ export interface TableauDeBordStats {
     employeur: number
     travailleur: number
   }
+  parStatut: Record<string, number>
+  evolution: EvolutionPoint[]
 }
 
 export interface SupervisionFilters {

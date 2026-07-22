@@ -63,7 +63,7 @@ function InfoTile({
   return (
     <div
       className={cn(
-        'rounded-xl border border-slate-100 bg-slate-50/80 p-4',
+        'rounded-xl border border-slate-100 bg-slate-50/80 p-3.5 sm:p-4',
         className,
       )}
     >
@@ -73,7 +73,7 @@ function InfoTile({
           {label}
         </dt>
       </div>
-      <dd className="text-sm font-medium text-cnss-900">{value}</dd>
+      <dd className="break-words text-sm font-medium text-cnss-900">{value}</dd>
     </div>
   )
 }
@@ -126,27 +126,27 @@ export function SuiviPage() {
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute -bottom-24 left-1/2 size-[28rem] -translate-x-1/2 rounded-full bg-cnss-400/10 blur-3xl"
+          className="pointer-events-none absolute -bottom-24 left-1/2 size-[min(28rem,100vw)] -translate-x-1/2 rounded-full bg-cnss-400/10 blur-3xl"
           aria-hidden="true"
         />
-        <div className="relative mx-auto max-w-3xl px-4 pb-20 pt-12 text-center sm:px-6 sm:pb-24 sm:pt-16">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm backdrop-blur">
-            <FileSearch className="size-4 text-cnss-300" aria-hidden="true" />
-            Portail public
+        <div className="relative mx-auto max-w-3xl px-4 pb-16 pt-10 text-center sm:px-6 sm:pb-24 sm:pt-16">
+          <div className="mb-4 inline-flex max-w-full items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm backdrop-blur sm:mb-5">
+            <FileSearch className="size-4 shrink-0 text-cnss-300" aria-hidden="true" />
+            <span className="truncate">Portail public</span>
           </div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-4xl">
             Suivi de demande
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-cnss-100/90">
+          <p className="mx-auto mt-3 max-w-xl text-sm text-cnss-100/90 sm:text-base">
             Entrez le numéro reçu lors du dépôt pour consulter l&apos;avancement
             de votre dossier auprès de la CNSS.
           </p>
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto -mt-14 max-w-2xl px-4 pb-14 sm:-mt-16 sm:px-6 sm:pb-20">
-        <Card className="mb-8 border-cnss-100/80 shadow-lg shadow-cnss-900/5">
-          <CardContent className="p-6 sm:p-7">
+      <section className="relative z-10 mx-auto -mt-10 max-w-2xl px-3 pb-10 sm:-mt-16 sm:px-6 sm:pb-20">
+        <Card className="mb-6 border-cnss-100/80 shadow-lg shadow-cnss-900/5 sm:mb-8">
+          <CardContent className="p-4 sm:p-7">
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-4"
@@ -195,7 +195,7 @@ export function SuiviPage() {
         </Card>
 
         {!submittedNumero ? (
-          <div className="rounded-2xl border border-dashed border-cnss-200 bg-white/60 px-6 py-10 text-center">
+          <div className="rounded-2xl border border-dashed border-cnss-200 bg-white/60 px-4 py-8 text-center sm:px-6 sm:py-10">
             <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-cnss-100 text-cnss-700">
               <Hash className="size-5" aria-hidden="true" />
             </div>
@@ -232,7 +232,7 @@ export function SuiviPage() {
             <Card className="overflow-hidden border-cnss-100/80">
               <div
                 className={cn(
-                  'border-b px-6 py-5 sm:px-7',
+                  'border-b px-4 py-4 sm:px-7 sm:py-5',
                   statutMeta.variant === 'validee' &&
                     'border-statut-validee/20 bg-statut-validee/10',
                   statutMeta.variant === 'rejetee' &&
@@ -241,12 +241,12 @@ export function SuiviPage() {
                     'border-statut-enAttente/20 bg-statut-enAttente/10',
                 )}
               >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
+                <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
+                  <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       Numéro de suivi
                     </p>
-                    <p className="mt-1 font-mono text-xl font-bold tracking-wide text-cnss-900 sm:text-2xl">
+                    <p className="mt-1 break-all font-mono text-lg font-bold tracking-wide text-cnss-900 sm:text-2xl">
                       {result.numeroDemande}
                     </p>
                     <p className="mt-1.5 text-sm text-slate-600">
@@ -257,7 +257,7 @@ export function SuiviPage() {
                 </div>
               </div>
 
-              <CardContent className="space-y-8 p-6 sm:p-7">
+              <CardContent className="space-y-6 p-4 sm:space-y-8 sm:p-7">
                 <div>
                   <div className="mb-4 flex items-center gap-2">
                     <StatutIcon

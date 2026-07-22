@@ -2,15 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useSearchParams } from 'react-router-dom'
-import {
-  ArrowLeft,
-  ClipboardCheck,
-  Eye,
-  EyeOff,
-  Lock,
-  ShieldCheck,
-  UserRound,
-} from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, Lock, UserRound } from 'lucide-react'
 import {
   Alert,
   Button,
@@ -22,19 +14,6 @@ import { useLogin } from '@/features/auth/hooks'
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas'
 import cnssLogo from '@/images/logo.png'
 import { cn } from '@/lib/cn'
-
-const FEATURES = [
-  {
-    icon: ClipboardCheck,
-    title: 'Validation des demandes',
-    description: 'Traitement N1 et N2 des dossiers IFU / NPI.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Accès sécurisé',
-    description: 'Authentification réservée aux agents CNSS habilités.',
-  },
-] as const
 
 export function LoginPage() {
   const [searchParams] = useSearchParams()
@@ -67,21 +46,13 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-svh bg-white">
-      <aside className="relative hidden w-[44%] overflow-hidden bg-gradient-to-br from-cnss-900 via-cnss-800 to-cnss-700 lg:flex lg:flex-col lg:justify-between">
+      <aside className="relative hidden w-[44%] overflow-hidden bg-gradient-to-br from-cnss-900 via-cnss-800 to-cnss-700 lg:flex lg:flex-col">
         <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(79,163,240,0.28),transparent_50%)]"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute -bottom-24 -right-24 size-80 rounded-full bg-cnss-400/15 blur-3xl"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:40px_40px]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(79,163,240,0.22),transparent_55%)]"
           aria-hidden="true"
         />
 
-        <div className="relative p-10 xl:p-12">
+        <div className="relative flex flex-1 flex-col justify-between p-10 xl:p-12">
           <div className="flex items-center gap-3">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 shadow-md shadow-black/20">
               <img
@@ -98,42 +69,19 @@ export function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-16 max-w-md">
-            <p className="text-sm font-medium uppercase tracking-[0.18em] text-cnss-300">
-              Espace agents
-            </p>
-            <h1 className="mt-3 font-display text-4xl font-bold leading-tight tracking-tight text-white xl:text-[2.75rem]">
-              Pilotez l&apos;assainissement IFU &amp; NPI
+          <div className="max-w-sm">
+            <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-white xl:text-[2.75rem]">
+              Assainissement IFU &amp; NPI
             </h1>
-            <p className="mt-4 text-base leading-relaxed text-cnss-100/85">
-              Plateforme interne de validation, supervision et administration des
-              demandes déposées sur le portail public.
+            <p className="mt-4 text-base leading-relaxed text-cnss-100/80">
+              Espace agents pour la validation et le suivi des demandes.
             </p>
           </div>
 
-          <ul className="mt-12 space-y-4">
-            {FEATURES.map(({ icon: Icon, title, description }) => (
-              <li
-                key={title}
-                className="flex gap-4 rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm"
-              >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-cnss-200">
-                  <Icon className="size-5" aria-hidden="true" />
-                </span>
-                <div>
-                  <p className="font-display text-sm font-semibold text-white">
-                    {title}
-                  </p>
-                  <p className="mt-0.5 text-sm text-cnss-100/70">{description}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <p className="text-xs text-cnss-100/50">
+            © {new Date().getFullYear()} CNSS — Bénin
+          </p>
         </div>
-
-        <p className="relative px-10 pb-8 text-xs text-cnss-100/50 xl:px-12">
-          © {new Date().getFullYear()} Caisse Nationale de Sécurité Sociale — Bénin
-        </p>
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col">

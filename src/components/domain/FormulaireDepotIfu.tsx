@@ -123,7 +123,7 @@ export function FormulaireDepotIfu() {
     : null
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-6 sm:space-y-8">
       <Stepper steps={[...STEPS]} currentStep={currentStep} />
 
       {currentStep === 0 ? (
@@ -169,7 +169,11 @@ export function FormulaireDepotIfu() {
                 ) : null}
               </div>
 
-              <Button type="submit" isLoading={verifyCnss.isPending}>
+              <Button
+                type="submit"
+                className="w-full sm:w-auto"
+                isLoading={verifyCnss.isPending}
+              >
                 Vérifier mon numéro
               </Button>
             </form>
@@ -219,15 +223,20 @@ export function FormulaireDepotIfu() {
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">
                 <Button
                   type="button"
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => setCurrentStep(0)}
                 >
                   Retour
                 </Button>
-                <Button type="submit" isLoading={verifierIfu.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  isLoading={verifierIfu.isPending}
+                >
                   Vérifier l&apos;IFU
                 </Button>
               </div>
@@ -298,15 +307,20 @@ export function FormulaireDepotIfu() {
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">
                 <Button
                   type="button"
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() => setCurrentStep(1)}
                 >
                   Retour
                 </Button>
-                <Button type="submit" isLoading={depotIfuMutation.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  isLoading={depotIfuMutation.isPending}
+                >
                   Déposer ma demande
                 </Button>
               </div>
@@ -334,25 +348,29 @@ export function FormulaireDepotIfu() {
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                   Numéro de demande
                 </p>
-                <p className="mt-1 font-display text-lg font-bold text-cnss-800">
+                <p className="mt-1 break-all font-display text-base font-bold text-cnss-800 sm:text-lg">
                   {numeroDemande}
                 </p>
               </div>
 
-              <dl className="mt-6 w-full max-w-sm space-y-2 text-left text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-slate-500">Raison sociale DGI</dt>
-                  <dd className="font-medium text-cnss-900">{raisonSocialeDgi}</dd>
+              <dl className="mt-6 w-full max-w-sm space-y-3 text-left text-sm">
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
+                  <dt className="shrink-0 text-slate-500">Raison sociale DGI</dt>
+                  <dd className="break-words font-medium text-cnss-900 sm:text-right">
+                    {raisonSocialeDgi}
+                  </dd>
                 </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-slate-500">IFU</dt>
-                  <dd className="font-medium text-cnss-900">{ifu}</dd>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
+                  <dt className="shrink-0 text-slate-500">IFU</dt>
+                  <dd className="break-all font-medium text-cnss-900 sm:text-right">
+                    {ifu}
+                  </dd>
                 </div>
               </dl>
 
               <Link
                 to={`/suivi?numero=${encodeURIComponent(numeroDemande)}`}
-                className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-cnss-700 px-4 text-sm font-medium text-white transition-colors hover:bg-cnss-800"
+                className="mt-6 inline-flex h-11 w-full max-w-sm items-center justify-center rounded-lg bg-cnss-700 px-4 text-sm font-medium text-white transition-colors hover:bg-cnss-800 sm:h-10 sm:w-auto"
               >
                 Suivre ma demande
               </Link>

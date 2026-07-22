@@ -8,7 +8,12 @@ interface TableauDeBordRaw {
   totalGeneral: number
   totalParStatut: Record<string, number>
   totalParModule: Record<string, number>
-  evolution: Array<{ date: string; count: number }>
+  evolution: Array<{
+    date: string
+    count: number
+    employeur?: number
+    travailleur?: number
+  }>
 }
 
 function mapTableauDeBord(raw: TableauDeBordRaw): TableauDeBordStats {
@@ -31,6 +36,13 @@ function mapTableauDeBord(raw: TableauDeBordRaw): TableauDeBordStats {
       employeur: raw.totalParModule?.EMPLOYEUR ?? 0,
       travailleur: raw.totalParModule?.TRAVAILLEUR ?? 0,
     },
+    parStatut,
+    evolution: (raw.evolution ?? []).map((point) => ({
+      date: point.date,
+      count: point.count ?? 0,
+      employeur: point.employeur ?? 0,
+      travailleur: point.travailleur ?? 0,
+    })),
   }
 }
 

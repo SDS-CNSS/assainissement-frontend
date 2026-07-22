@@ -16,6 +16,7 @@ import {
   FlashFeedback,
   useFlashFeedback,
 } from '@/components/domain/FlashFeedback'
+import { StatistiquesCharts } from '@/components/domain/StatistiquesCharts'
 import {
   useExportStatistiques,
   useTableauDeBord,
@@ -27,7 +28,7 @@ import { STATUT_DEMANDE_MAP } from '@/lib/statutDemande'
 import type { StatutDemande } from '@/lib/statutDemande'
 import { downloadBlob } from '@/lib/downloadBlob'
 
-/** UC-13 : tableau de bord filtrable et export Excel. */
+/** UC-13 : tableau de bord filtrable, graphiques d'évolution et export Excel. */
 export function AdminStatistiquesPage() {
   const [dateDebut, setDateDebut] = useState('')
   const [dateFin, setDateFin] = useState('')
@@ -127,7 +128,7 @@ export function AdminStatistiquesPage() {
             Statistiques
           </h2>
           <p className="mt-1 text-slate-600">
-            Tableau de bord filtrable et export Excel.
+            Indicateurs, évolution des dépôts et export Excel (UC-13).
           </p>
         </div>
         <Button
@@ -239,6 +240,11 @@ export function AdminStatistiquesPage() {
               </Card>
             ))}
       </div>
+
+      <StatistiquesCharts
+        stats={statsQuery.data}
+        isLoading={statsQuery.isLoading}
+      />
     </div>
   )
 }

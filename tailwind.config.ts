@@ -41,14 +41,14 @@ export default {
           to: { opacity: '1' },
         },
         'fade-up': {
-          from: { opacity: '0', transform: 'translateY(8px)' },
+          from: { opacity: '0', transform: 'translateY(10px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
       },
       animation: {
         'drawer-in': 'drawer-in 0.3s ease-out forwards',
         'backdrop-in': 'backdrop-in 0.2s ease-out forwards',
-        'fade-up': 'fade-up 0.35s ease-out forwards',
+        'fade-up': 'fade-up 0.5s ease-out both',
       },
     },
   },
