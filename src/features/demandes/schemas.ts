@@ -1,0 +1,110 @@
+import { z } from 'zod'
+
+const emailField = z
+  .string()
+  .min(1, 'Veuillez saisir votre adresse e-mail.')
+  .email('L\'adresse e-mail saisie n\'est pas valide.')
+
+const emailConfirmationRefine = <T extends { email: string; emailConfirmation: string }>(
+  data: T,
+  ctx: z.RefinementCtx,
+) => {
+  if (data.email !== data.emailConfirmation) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Les deux adresses e-mail doivent être identiques.',
+      path: ['emailConfirmation'],
+    })
+  }
+}
+
+/** RG-02 : numéro CNSS employeur requis avant appel référentiel. */
+export const cnssEmployeurStepSchema = z.object({
+  numeroCNSS: z
+    .string()
+    .min(1, 'Veuillez saisir votre numéro CNSS.')
+    .regex(/^\d+$/, 'Le numéro CNSS ne doit contenir que des chiffres.'),
+})
+
+/** RG-15 : IFU = exactement 13 chiffres. */
+export const ifuStepSchema = z.object({
+  ifu: z
+    .string()
+    .min(1, 'Veuillez saisir votre IFU.')
+    .regex(/^\d{13}$/, 'L\'IFU doit comporter exactement 13 chiffres.'),
+})
+
+/** RG-07 : double saisie e-mail strictement identique. */
+export const ifuEmailStepSchema = z
+  .object({
+    email: emailField,
+    emailConfirmation: z
+      .string()
+      .min(1, 'Veuillez confirmer votre adresse e-mail.'),
+  })
+  .superRefine(emailConfirmationRefine)
+
+export const ifuSchema = cnssEmployeurStepSchema
+  .merge(ifuStepSchema)
+  .merge(ifuEmailStepSchema)
+
+export type CnssEmployeurStepValues = z.infer<typeof cnssEmployeurStepSchema>
+export type IfuStepValues = z.infer<typeof ifuStepSchema>
+export type IfuEmailStepValues = z.infer<typeof ifuEmailStepSchema>
+export type IfuFormValues = z.infer<typeof ifuSchema>
+
+/** RG-03 : numéro CNSS travailleur. */
+export const cnssTravailleurStepSchema = z.object({
+  numeroCNSS: z
+    .string()
+    .min(1, 'Veuillez saisir votre numéro CNSS.')
+    .regex(/^\d+$/, 'Le numéro CNSS ne doit contenir que des chiffres.'),
+})
+
+export const npiStepSchema = z.object({
+  npi: z
+    .string()
+    .min(1, 'Veuillez saisir votre NPI.')
+    .regex(/^\d{16}$/, 'Le NPI doit comporter exactement 16 chiffres.'),
+})
+
+/** RG-06 : code OTP à 6 chiffres. */
+export const otpStepSchema = z.object({
+  code: z
+    .string()
+    .min(1, 'Veuillez saisir le code OTP.')
+    .regex(/^\d{6}$/, 'Le code OTP doit comporter exactement 6 chiffres.'),
+})
+
+export const npiEmailStepSchema = z
+  .object({
+    email: emailField,
+    emailConfirmation: z
+      .string()
+      .min(1, 'Veuillez confirmer votre adresse e-mail.'),
+  })
+  .superRefine(emailConfirmationRefine)
+
+export const npiSchema = cnssTravailleurStepSchema
+  .merge(npiStepSchema)
+  .merge(otpStepSchema)
+  .merge(npiEmailStepSchema)
+
+export type CnssTravailleurStepValues = z.infer<typeof cnssTravailleurStepSchema>
+export type NpiStepValues = z.infer<typeof npiStepSchema>
+export type OtpStepValues = z.infer<typeof otpStepSchema>
+export type NpiEmailStepValues = z.infer<typeof npiEmailStepSchema>
+export type NpiFormValues = z.infer<typeof npiSchema>
+
+/** RG-01 : format DEM-AAAA-NNNNNN. */
+export const suiviSchema = z.object({
+  numeroDemande: z
+    .string()
+    .min(1, 'Veuillez saisir le numéro de demande.')
+    .regex(
+      /^DEM-\d{4}-\d{6}$/,
+      'Le numéro de demande doit respecter le format DEM-AAAA-NNNNNN.',
+    ),
+})
+
+export type SuiviFormValues = z.infer<typeof suiviSchema>
