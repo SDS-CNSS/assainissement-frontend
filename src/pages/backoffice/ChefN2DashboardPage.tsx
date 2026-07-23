@@ -11,7 +11,7 @@ import {
 import { ConfirmDialog } from '@/components/domain/ConfirmDialog'
 import {
   FlashFeedback,
-  useFlashFeedback,
+  useFlashFromNavigation,
 } from '@/components/domain/FlashFeedback'
 import { DemandeTable } from '@/components/domain/DemandeTable'
 import { RejetModal } from '@/components/domain/RejetModal'
@@ -47,7 +47,7 @@ export function ChefN2DashboardPage() {
     null,
   )
   const [page, setPage] = useState(DEFAULT_PAGE)
-  const { feedback, setFeedback, clearFeedback } = useFlashFeedback()
+  const { feedback, setFeedback, clearFeedback } = useFlashFromNavigation()
 
   const listParams = useMemo(
     () => ({
@@ -59,7 +59,7 @@ export function ChefN2DashboardPage() {
     [moduleTab, page],
   )
 
-  const demandesQuery = useDemandesList(listParams)
+  const demandesQuery = useDemandesList(listParams, { refetchInterval: 30_000 })
   const validerN2 = useValiderN2()
   const rejeterN2 = useRejeterN2()
 
@@ -77,7 +77,7 @@ export function ChefN2DashboardPage() {
         variant: 'error',
         message: getApiErrorMessage(
           error,
-          'La validation définitive N2 a échoué. Veuillez réessayer.',
+          'La validation définitive Agent 2 a échoué. Veuillez réessayer.',
         ),
       })
     }
@@ -98,7 +98,7 @@ export function ChefN2DashboardPage() {
         variant: 'error',
         message: getApiErrorMessage(
           error,
-          'Le rejet N2 a échoué. Veuillez réessayer.',
+          'Le rejet Agent 2 a échoué. Veuillez réessayer.',
         ),
       })
     }
@@ -108,7 +108,7 @@ export function ChefN2DashboardPage() {
     demandesQuery.isError
       ? getApiErrorMessage(
           demandesQuery.error,
-          'Impossible de charger la file d\'attente N2.',
+          'Impossible de charger la file d\'attente Agent 2.',
         )
       : null
 
@@ -119,7 +119,7 @@ export function ChefN2DashboardPage() {
           Validations
         </h2>
         <p className="mt-1 text-slate-600">
-          Décision définitive et historique du cycle de vie.
+          Validation et rejet des demandes en attente de traitement.
         </p>
       </div>
 
@@ -172,6 +172,7 @@ export function ChefN2DashboardPage() {
             <DemandeTable
               demandes={demandesQuery.data?.demandes ?? []}
               isActionPending={isActionPending}
+              compactStatut
               onViewDetail={(demande) =>
                 navigate(`/backoffice/demandes/${demande.id}`)
               }
@@ -195,13 +196,14 @@ export function ChefN2DashboardPage() {
 
       <ConfirmDialog
         open={Boolean(confirmTarget)}
-        title="Confirmer la validation définitive"
+        title="Confirmer la validation"
         message={
           confirmTarget
-            ? `Valider définitivement la demande ${confirmTarget.numeroDemande} ? Cette action est irréversible.`
+            ? `Valider la demande ${confirmTarget.numeroDemande} ?`
             : ''
         }
-        confirmLabel="Valider définitivement"
+        confirmLabel="Oui"
+        cancelLabel="Non"
         isLoading={validerN2.isPending}
         onConfirm={handleValiderConfirm}
         onCancel={() => setConfirmTarget(null)}
@@ -209,12 +211,14 @@ export function ChefN2DashboardPage() {
 
       <RejetModal
         open={Boolean(rejetTarget)}
-        title="Rejeter la demande (N2)"
+        title="Rejeter la demande"
         description={
           rejetTarget
-            ? `Indiquez le motif de rejet pour ${rejetTarget.numeroDemande}. La demande sera renvoyée à l'agent N1.`
+            ? `Rejeter la demande ${rejetTarget.numeroDemande} ?`
             : undefined
         }
+        confirmLabel="Oui"
+        cancelLabel="Non"
         isLoading={rejeterN2.isPending}
         onClose={() => setRejetTarget(null)}
         onSubmit={handleRejetSubmit}

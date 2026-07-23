@@ -28,7 +28,7 @@ export interface ConnectionInfoDocxData {
   structure?: string
 }
 
-const APPLICATION_NAME = 'Portail Assainissement IFU/NPI'
+const APPLICATION_NAME = 'Portail de mise à jour IFU/NPI'
 
 const GRAY_BG = 'E8E8E8';
 const FONT = 'Arial';

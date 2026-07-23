@@ -2,12 +2,14 @@
 export type UserRole =
   | 'AGENT_VALIDATION'
   | 'CHEF_VALIDATION'
+  | 'SUPERVISEUR'
   | 'ADMINISTRATEUR'
 
 /** Rôles Symfony exposés dans le JWT (section 6). */
 export type SymfonyRole =
   | 'ROLE_AGENT_VALIDATION'
   | 'ROLE_CHEF_VALIDATION'
+  | 'ROLE_SUPERVISEUR'
   | 'ROLE_ADMIN'
 
 export interface AuthUser {
@@ -24,6 +26,7 @@ export interface AuthUser {
 export const ROLE_TO_SYMFONY: Record<UserRole, SymfonyRole> = {
   AGENT_VALIDATION: 'ROLE_AGENT_VALIDATION',
   CHEF_VALIDATION: 'ROLE_CHEF_VALIDATION',
+  SUPERVISEUR: 'ROLE_SUPERVISEUR',
   ADMINISTRATEUR: 'ROLE_ADMIN',
 }
 
@@ -42,6 +45,8 @@ export function getDefaultBackofficePath(user: AuthUser): string {
       return '/backoffice/agent'
     case 'CHEF_VALIDATION':
       return '/backoffice/chef'
+    case 'SUPERVISEUR':
+      return '/backoffice/superviseur'
     case 'ADMINISTRATEUR':
       return '/backoffice/admin'
   }

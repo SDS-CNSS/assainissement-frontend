@@ -7,6 +7,7 @@ export interface ConfirmDialogProps {
   title: string
   message: string
   confirmLabel?: string
+  cancelLabel?: string
   isLoading?: boolean
   onConfirm: () => void
   onCancel: () => void
@@ -17,6 +18,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel = 'Confirmer',
+  cancelLabel = 'Annuler',
   isLoading = false,
   onConfirm,
   onCancel,
@@ -89,7 +91,7 @@ export function ConfirmDialog({
             onClick={onCancel}
             disabled={isLoading}
           >
-            Annuler
+            {cancelLabel}
           </Button>
           <Button
             type="button"

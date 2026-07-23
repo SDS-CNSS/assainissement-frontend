@@ -13,6 +13,8 @@ export interface RejetModalProps {
   open: boolean
   title: string
   description?: string
+  confirmLabel?: string
+  cancelLabel?: string
   isLoading?: boolean
   onClose: () => void
   onSubmit: (motif: string) => void
@@ -22,6 +24,8 @@ export function RejetModal({
   open,
   title,
   description,
+  confirmLabel = 'Confirmer le rejet',
+  cancelLabel = 'Annuler',
   isLoading = false,
   onClose,
   onSubmit,
@@ -138,10 +142,10 @@ export function RejetModal({
               onClick={onClose}
               disabled={isLoading}
             >
-              Annuler
+              {cancelLabel}
             </Button>
             <Button type="submit" variant="danger" isLoading={isLoading}>
-              Confirmer le rejet
+              {confirmLabel}
             </Button>
           </div>
         </form>

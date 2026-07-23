@@ -20,8 +20,9 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
     >
       <ol className="flex items-center justify-between gap-0.5 sm:gap-2">
         {steps.map((step, index) => {
-          const isDone = index < currentStep
-          const isActive = index === currentStep
+          const isLastStepComplete = currentStep >= steps.length - 1
+          const isDone = index < currentStep || (isLastStepComplete && index === currentStep)
+          const isActive = index === currentStep && !isLastStepComplete
 
           return (
             <li

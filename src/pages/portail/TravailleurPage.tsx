@@ -9,7 +9,7 @@ export function TravailleurPage() {
         icon={Users}
         badge="Parcours travailleur · NPI"
         title="Dépôt de demande"
-        description="Assainissez votre Numéro Personnel d'Identification (NPI)."
+        description="Mettez à jour votre Numéro Personnel d'Identification (NPI)."
       />
 
       <section className="relative z-10 bg-white">

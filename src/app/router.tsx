@@ -8,6 +8,7 @@ import {
   RequireRole,
 } from '@/features/auth/RequireRole'
 import { AdminAuditLogPage } from '@/pages/backoffice/AdminAuditLogPage'
+import { AdminConsolidationPage } from '@/pages/backoffice/AdminConsolidationPage'
 import { AdminDashboardPage } from '@/pages/backoffice/AdminDashboardPage'
 import { AdminDirectionsPage } from '@/pages/backoffice/AdminDirectionsPage'
 import { AdminStatistiquesPage } from '@/pages/backoffice/AdminStatistiquesPage'
@@ -18,8 +19,10 @@ import { BackofficeHomeRedirect } from '@/pages/backoffice/BackofficeHomeRedirec
 import { ChangePasswordPage } from '@/pages/backoffice/ChangePasswordPage'
 import { ChefN2DashboardPage } from '@/pages/backoffice/ChefN2DashboardPage'
 import { DemandeDetailPage } from '@/pages/backoffice/DemandeDetailPage'
+import { HistoriqueTraitementsPage } from '@/pages/backoffice/HistoriqueTraitementsPage'
 import { LoginPage } from '@/pages/backoffice/LoginPage'
 import { ProfilPage } from '@/pages/backoffice/ProfilPage'
+import { SuperviseurDashboardPage } from '@/pages/backoffice/SuperviseurDashboardPage'
 import { AccueilPage } from '@/pages/portail/AccueilPage'
 import { EmployeurPage } from '@/pages/portail/EmployeurPage'
 import { SuiviPage } from '@/pages/portail/SuiviPage'
@@ -76,12 +79,39 @@ export const router = createBrowserRouter([
                 ],
               },
               {
-                // UC-11 / RG-11 : détail + historique (Agent N1, Chef N2, Admin)
+                element: <RequireRole roles="ROLE_SUPERVISEUR" />,
+                children: [
+                  {
+                    path: 'superviseur',
+                    element: <SuperviseurDashboardPage />,
+                  },
+                ],
+              },
+              {
                 element: (
                   <RequireRole
                     roles={[
                       'ROLE_AGENT_VALIDATION',
                       'ROLE_CHEF_VALIDATION',
+                      'ROLE_SUPERVISEUR',
+                    ]}
+                  />
+                ),
+                children: [
+                  {
+                    path: 'historique',
+                    element: <HistoriqueTraitementsPage />,
+                  },
+                ],
+              },
+              {
+                // UC-11 / RG-11 : détail + historique (Agent 1, Agent 2, Superviseur, Admin)
+                element: (
+                  <RequireRole
+                    roles={[
+                      'ROLE_AGENT_VALIDATION',
+                      'ROLE_CHEF_VALIDATION',
+                      'ROLE_SUPERVISEUR',
                       'ROLE_ADMIN',
                     ]}
                   />
@@ -116,6 +146,10 @@ export const router = createBrowserRouter([
                   {
                     path: 'admin/statistiques',
                     element: <AdminStatistiquesPage />,
+                  },
+                  {
+                    path: 'admin/consolidation',
+                    element: <AdminConsolidationPage />,
                   },
                   {
                     path: 'admin/audit',

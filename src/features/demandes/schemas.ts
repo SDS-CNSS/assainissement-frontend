@@ -96,14 +96,24 @@ export type OtpStepValues = z.infer<typeof otpStepSchema>
 export type NpiEmailStepValues = z.infer<typeof npiEmailStepSchema>
 export type NpiFormValues = z.infer<typeof npiSchema>
 
-/** RG-01 : format DEM-AAAA-NNNNNN. */
+/** RG-01 (adapté) : 10 caractères — 4 lettres + 6 chiffres, positions libres (ex. A1B23C45D6). */
+export function isNumeroDemandeFormat(value: string): boolean {
+  if (!/^[A-Z0-9]{10}$/.test(value)) {
+    return false
+  }
+  const letters = (value.match(/[A-Z]/g) ?? []).length
+  const digits = (value.match(/\d/g) ?? []).length
+  return letters === 4 && digits === 6
+}
+
 export const suiviSchema = z.object({
   numeroDemande: z
     .string()
     .min(1, 'Veuillez saisir le numéro de demande.')
-    .regex(
-      /^DEM-\d{4}-\d{6}$/,
-      'Le numéro de demande doit respecter le format DEM-AAAA-NNNNNN.',
+    .transform((value) => value.trim().toUpperCase())
+    .refine(
+      isNumeroDemandeFormat,
+      'Le numéro de demande doit comporter exactement 4 lettres et 6 chiffres (10 caractères, ex. A1B23C45D6).',
     ),
 })
 

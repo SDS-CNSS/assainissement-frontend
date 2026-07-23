@@ -46,6 +46,12 @@ const ADMIN_SECTIONS = [
     to: '/backoffice/admin/statistiques',
     icon: BarChart3,
   },
+  {
+    label: 'Consolidation',
+    description: 'Écriture IFU/NPI validés dans le référentiel',
+    to: '/backoffice/admin/consolidation',
+    icon: CheckCircle2,
+  },
 ] as const
 
 const STAT_CARDS = [
@@ -60,8 +66,8 @@ const STAT_CARDS = [
   },
   {
     key: 'enAttenteN1' as const,
-    label: 'En attente N1',
-    hint: 'File agents de validation',
+    label: 'En attente Agent 1',
+    hint: 'File Agent 1',
     icon: Hourglass,
     iconClass: 'bg-amber-100 text-amber-700',
     valueClass: 'text-amber-800',
@@ -69,8 +75,8 @@ const STAT_CARDS = [
   },
   {
     key: 'enAttenteN2' as const,
-    label: 'En attente N2',
-    hint: 'File chefs de validation',
+    label: 'En attente Agent 2',
+    hint: 'File Agent 2',
     icon: ShieldCheck,
     iconClass: 'bg-sky-100 text-sky-700',
     valueClass: 'text-cnss-800',
@@ -79,7 +85,7 @@ const STAT_CARDS = [
   {
     key: 'valideesDefinitivement' as const,
     label: 'Validées',
-    hint: 'Décision définitive N2',
+    hint: 'Décision définitive Agent 2',
     icon: CheckCircle2,
     iconClass: 'bg-emerald-100 text-emerald-700',
     valueClass: 'text-emerald-800',

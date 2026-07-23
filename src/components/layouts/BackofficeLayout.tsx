@@ -5,8 +5,11 @@ import {
   Building2,
   ClipboardList,
   Eye,
+  History,
+  Layers,
   LayoutDashboard,
   LogOut,
+  Scale,
   ScrollText,
   Shield,
   Users,
@@ -44,6 +47,18 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['ROLE_CHEF_VALIDATION'],
   },
   {
+    label: 'Arbitrage',
+    to: '/backoffice/superviseur',
+    icon: Scale,
+    roles: ['ROLE_SUPERVISEUR'],
+  },
+  {
+    label: 'Historique',
+    to: '/backoffice/historique',
+    icon: History,
+    roles: ['ROLE_AGENT_VALIDATION', 'ROLE_CHEF_VALIDATION', 'ROLE_SUPERVISEUR'],
+  },
+  {
     label: 'Tableau de bord',
     to: '/backoffice/admin',
     icon: LayoutDashboard,
@@ -72,6 +87,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Statistiques',
     to: '/backoffice/admin/statistiques',
     icon: BarChart3,
+    roles: ['ROLE_ADMIN'],
+  },
+  {
+    label: 'Consolidation',
+    to: '/backoffice/admin/consolidation',
+    icon: Layers,
     roles: ['ROLE_ADMIN'],
   },
   {

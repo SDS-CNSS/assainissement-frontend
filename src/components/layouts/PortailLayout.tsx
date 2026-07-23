@@ -51,7 +51,7 @@ export function PortailLayout() {
                 CNSS — Bénin
               </p>
               <p className="hidden text-xs text-slate-500 sm:block">
-                Portail d&apos;assainissement
+                Portail de mise à jour
               </p>
             </div>
           </Link>
@@ -153,8 +153,7 @@ export function PortailLayout() {
                   CNSS — Bénin
                 </p>
                 <p className="mt-0.5 max-w-xs text-xs leading-relaxed text-slate-500 sm:text-sm">
-                  Portail public d&apos;assainissement des identifiants IFU et
-                  NPI.
+                  Portail public de mise à jour des identifiants IFU et NPI.
                 </p>
               </div>
             </Link>

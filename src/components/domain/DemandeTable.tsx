@@ -10,16 +10,9 @@ import {
 import { BadgeStatutDemande } from '@/components/domain/BadgeStatutDemande'
 import { Button } from '@/components/ui'
 import type { DemandeListItem } from '@/features/validation/types'
-import { MODULE_LABELS } from '@/features/validation/types'
-import { formatDate } from '@/lib/formatDate'
 import { cn } from '@/lib/cn'
 
-type SortColumn =
-  | 'numeroDemande'
-  | 'module'
-  | 'numeroCNSS'
-  | 'statut'
-  | 'dateCreation'
+type SortColumn = 'numeroDemande' | 'numeroCNSS' | 'ifu' | 'statut'
 
 type SortDirection = 'asc' | 'desc'
 
@@ -31,6 +24,9 @@ export interface DemandeTableProps {
   isActionPending?: boolean
   selectedId?: string | null
   readonly?: boolean
+  /** Libellé statut court « En attente » (files Agent / Superviseur). */
+  compactStatut?: boolean
+  emptyMessage?: string
 }
 
 function SortIcon({
@@ -52,6 +48,10 @@ function SortIcon({
   )
 }
 
+function compareText(a: string | undefined, b: string | undefined): number {
+  return (a ?? '').localeCompare(b ?? '', 'fr', { sensitivity: 'base' })
+}
+
 function compareValues(
   a: DemandeListItem,
   b: DemandeListItem,
@@ -60,19 +60,41 @@ function compareValues(
   switch (column) {
     case 'numeroDemande':
       return a.numeroDemande.localeCompare(b.numeroDemande)
-    case 'module':
-      return a.module.localeCompare(b.module)
     case 'numeroCNSS':
       return a.numeroCNSS.localeCompare(b.numeroCNSS)
+    case 'ifu':
+      return compareText(a.ifu, b.ifu)
     case 'statut':
       return a.statut.localeCompare(b.statut)
-    case 'dateCreation':
-      return (
-        new Date(a.dateCreation).getTime() - new Date(b.dateCreation).getTime()
-      )
     default:
       return 0
   }
+}
+
+function StackedCell({
+  primary,
+  secondary,
+}: {
+  primary: string | undefined
+  secondary: string | undefined
+}) {
+  const primaryText = primary && primary.trim() !== '' ? primary : '—'
+  const secondaryText =
+    secondary && secondary.trim() !== '' ? secondary : null
+
+  return (
+    <div className="min-w-0 max-w-[16rem]">
+      <p className="font-mono text-xs font-medium text-slate-800">{primaryText}</p>
+      {secondaryText ? (
+        <p
+          className="mt-0.5 truncate text-xs text-slate-500"
+          title={secondaryText}
+        >
+          {secondaryText}
+        </p>
+      ) : null}
+    </div>
+  )
 }
 
 export function DemandeTable({
@@ -83,10 +105,12 @@ export function DemandeTable({
   isActionPending = false,
   selectedId,
   readonly = false,
+  compactStatut = false,
+  emptyMessage = 'Aucune demande dans cette file d\'attente.',
 }: DemandeTableProps) {
   const showValidationActions = !readonly && onValider && onRejeter
-  const [sortColumn, setSortColumn] = useState<SortColumn>('dateCreation')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  const [sortColumn, setSortColumn] = useState<SortColumn>('numeroDemande')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
   const sortedDemandes = useMemo(() => {
     const copy = [...demandes]
@@ -112,7 +136,7 @@ export function DemandeTable({
   if (demandes.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-slate-500">
-        Aucune demande dans cette file d&apos;attente.
+        {emptyMessage}
       </p>
     )
   }
@@ -128,23 +152,9 @@ export function DemandeTable({
                 className={headerButtonClass}
                 onClick={() => toggleSort('numeroDemande')}
               >
-                Numéro
+                N° demande
                 <SortIcon
                   column="numeroDemande"
-                  sortColumn={sortColumn}
-                  sortDirection={sortDirection}
-                />
-              </button>
-            </th>
-            <th scope="col" className="px-4 py-3 text-left">
-              <button
-                type="button"
-                className={headerButtonClass}
-                onClick={() => toggleSort('module')}
-              >
-                Module
-                <SortIcon
-                  column="module"
                   sortColumn={sortColumn}
                   sortDirection={sortDirection}
                 />
@@ -168,11 +178,11 @@ export function DemandeTable({
               <button
                 type="button"
                 className={headerButtonClass}
-                onClick={() => toggleSort('statut')}
+                onClick={() => toggleSort('ifu')}
               >
-                Statut
+                IFU
                 <SortIcon
-                  column="statut"
+                  column="ifu"
                   sortColumn={sortColumn}
                   sortDirection={sortDirection}
                 />
@@ -182,11 +192,11 @@ export function DemandeTable({
               <button
                 type="button"
                 className={headerButtonClass}
-                onClick={() => toggleSort('dateCreation')}
+                onClick={() => toggleSort('statut')}
               >
-                Date dépôt
+                Statut
                 <SortIcon
-                  column="dateCreation"
+                  column="statut"
                   sortColumn={sortColumn}
                   sortDirection={sortDirection}
                 />
@@ -209,17 +219,23 @@ export function DemandeTable({
               <td className="whitespace-nowrap px-4 py-3 font-medium text-cnss-900">
                 {demande.numeroDemande}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {MODULE_LABELS[demande.module]}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {demande.numeroCNSS}
+              <td className="px-4 py-3">
+                <StackedCell
+                  primary={demande.numeroCNSS}
+                  secondary={demande.raisonSocialeCNSS}
+                />
               </td>
               <td className="px-4 py-3">
-                <BadgeStatutDemande statut={demande.statut} />
+                <StackedCell
+                  primary={demande.ifu}
+                  secondary={demande.raisonSocialeDGI}
+                />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">
-                {formatDate(demande.dateCreation)}
+              <td className="px-4 py-3">
+                <BadgeStatutDemande
+                  statut={demande.statut}
+                  compact={compactStatut}
+                />
               </td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap items-center justify-end gap-2">

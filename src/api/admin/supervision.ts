@@ -13,6 +13,10 @@ interface DemandeListItemRaw {
   numeroCNSS: string
   dateCreation: string
   dateMajStatut: string
+  raisonSocialeCNSS?: string
+  ifu?: string
+  raisonSocialeDGI?: string
+  npi?: string
 }
 
 interface SupervisionRawResponse {
@@ -31,6 +35,10 @@ function mapDemandeItem(raw: DemandeListItemRaw): DemandeListItem {
     numeroCNSS: raw.numeroCNSS,
     dateCreation: raw.dateCreation,
     dateMajStatut: raw.dateMajStatut,
+    raisonSocialeCNSS: raw.raisonSocialeCNSS,
+    ifu: raw.ifu,
+    raisonSocialeDGI: raw.raisonSocialeDGI,
+    npi: raw.npi,
   }
 }
 

@@ -12,6 +12,10 @@ export interface DemandeListItem {
   statut: StatutDemande
   dateCreation: string
   dateMajStatut: string
+  raisonSocialeCNSS?: string
+  ifu?: string
+  raisonSocialeDGI?: string
+  npi?: string
 }
 
 export interface DemandeListResponse {

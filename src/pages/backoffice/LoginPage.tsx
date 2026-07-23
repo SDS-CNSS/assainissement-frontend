@@ -71,7 +71,7 @@ export function LoginPage() {
 
           <div className="max-w-sm">
             <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-white xl:text-[2.75rem]">
-              Assainissement IFU &amp; NPI
+              Mise à jour IFU &amp; NPI
             </h1>
             <p className="mt-4 text-base leading-relaxed text-cnss-100/80">
               Espace agents pour la validation et le suivi des demandes.

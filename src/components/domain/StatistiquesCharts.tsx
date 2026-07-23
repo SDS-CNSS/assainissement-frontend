@@ -37,15 +37,17 @@ const STATUT_COLORS: Record<string, string> = {
   EN_ATTENTE_N1: AMBER,
   EN_ATTENTE_N2: CNSS_SKY,
   REJETEE_N1_EN_ATTENTE_N2: ROSE,
-  REJETEE_N2_RETOUR_N1: '#c2410c',
+  EN_ATTENTE_SUPERVISEUR: '#7C3AED',
+  REJETEE_DEFINITIVEMENT: '#c2410c',
   VALIDEE_DEFINITIVEMENT: EMERALD,
 }
 
 const STATUT_CHART_LABELS: Partial<Record<StatutDemande, string>> = {
-  EN_ATTENTE_N1: 'En attente N1',
-  REJETEE_N1_EN_ATTENTE_N2: 'Rejetée N1',
-  EN_ATTENTE_N2: 'En attente N2',
-  REJETEE_N2_RETOUR_N1: 'Retour N1',
+  EN_ATTENTE_N1: 'En attente Agent 1',
+  REJETEE_N1_EN_ATTENTE_N2: 'Rejetée Agent 1',
+  EN_ATTENTE_N2: 'En attente Agent 2',
+  EN_ATTENTE_SUPERVISEUR: 'En attente Superviseur',
+  REJETEE_DEFINITIVEMENT: 'Rejetée définitivement',
   VALIDEE_DEFINITIVEMENT: 'Validée',
 }
 

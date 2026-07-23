@@ -702,7 +702,7 @@ export function FormulaireDepotNpi() {
                 Demande enregistrée
               </h3>
               <p className="mt-2 max-w-md text-sm text-slate-600">
-                Votre demande d&apos;assainissement NPI a été déposée avec succès.
+                Votre demande de mise à jour NPI a été déposée avec succès.
                 Conservez votre numéro de dossier pour le suivi.
               </p>
 

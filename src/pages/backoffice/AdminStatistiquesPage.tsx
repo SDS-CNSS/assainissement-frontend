@@ -88,12 +88,12 @@ export function AdminStatistiquesPage() {
         className: 'text-cnss-900',
       },
       {
-        label: 'En attente N1',
+        label: 'En attente Agent 1',
         value: statsQuery.data.enAttenteN1,
         className: 'text-amber-700',
       },
       {
-        label: 'En attente N2',
+        label: 'En attente Agent 2',
         value: statsQuery.data.enAttenteN2,
         className: 'text-cnss-700',
       },

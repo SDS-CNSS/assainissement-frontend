@@ -678,8 +678,9 @@ function RoleModuleDirectionFields({
         error={errors.role?.message}
         {...register('role')}
       >
-        <option value="AGENT_VALIDATION">Agent validation N1</option>
-        <option value="CHEF_VALIDATION">Chef validation N2</option>
+        <option value="AGENT_VALIDATION">Agent 1</option>
+        <option value="CHEF_VALIDATION">Agent 2</option>
+        <option value="SUPERVISEUR">Superviseur</option>
         <option value="ADMINISTRATEUR">Administrateur</option>
       </SelectField>
 

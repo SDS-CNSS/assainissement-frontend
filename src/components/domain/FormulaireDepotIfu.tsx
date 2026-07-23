@@ -29,6 +29,7 @@ import {
   useVerifierIfuDgi,
   useVerifyEmployeurCnss,
 } from '@/features/demandes/hooks'
+import { maskEmail } from '@/lib/maskEmail'
 
 const STEPS = [
   { id: 'cnss', label: 'CNSS' },
@@ -44,6 +45,7 @@ export function FormulaireDepotIfu() {
   const [ifu, setIfu] = useState('')
   const [raisonSocialeDgi, setRaisonSocialeDgi] = useState('')
   const [numeroDemande, setNumeroDemande] = useState('')
+  const [emailDepot, setEmailDepot] = useState('')
 
   const verifyCnss = useVerifyEmployeurCnss()
   const verifierIfu = useVerifierIfuDgi()
@@ -95,6 +97,7 @@ export function FormulaireDepotIfu() {
       {
         onSuccess: (data) => {
           setNumeroDemande(data.numeroDemande)
+          setEmailDepot(values.email)
           setCurrentStep(3)
         },
       },
@@ -256,8 +259,7 @@ export function FormulaireDepotIfu() {
           </CardHeader>
           <CardContent>
             <Alert variant="info" className="mb-4">
-              IFU <strong>{ifu}</strong> reconnu par la DGI. Un e-mail de confirmation
-              sera envoyé à l&apos;adresse indiquée.
+              IFU <strong>{ifu}</strong> reconnu par la DGI.
             </Alert>
 
             {depotError ? (
@@ -340,9 +342,14 @@ export function FormulaireDepotIfu() {
                 Demande enregistrée
               </h3>
               <p className="mt-2 max-w-md text-sm text-slate-600">
-                Votre demande d&apos;assainissement IFU a été déposée avec succès.
+                Votre demande de mise à jour IFU a été déposée avec succès.
                 Conservez votre numéro de dossier pour le suivi.
               </p>
+
+              <Alert variant="info" className="mt-4 max-w-md text-left">
+                Un courriel de confirmation a été envoyé à l&apos;adresse{' '}
+                <strong>{maskEmail(emailDepot)}</strong>.
+              </Alert>
 
               <div className="mt-6 w-full max-w-sm rounded-lg border border-cnss-300/40 bg-cnss-50 p-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">

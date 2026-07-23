@@ -20,8 +20,8 @@ import { getApiErrorMessage } from '@/api/types'
 import { useAuthStore } from '@/features/auth/authStore'
 import {
   useDemandesList,
-  useRejeterN1,
-  useValiderN1,
+  useRejeterSuperviseur,
+  useValiderSuperviseur,
 } from '@/features/validation/hooks'
 import type {
   DemandeListItem,
@@ -36,7 +36,8 @@ const MODULE_TABS: { value: ModuleFilterTab; label: string }[] = [
   { value: 'TRAVAILLEUR', label: 'Travailleur' },
 ]
 
-export function AgentN1DashboardPage() {
+/** File d'attente Superviseur — arbitrage en cas de désaccord Agent 1 / Agent 2. */
+export function SuperviseurDashboardPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const showModuleTabs = user?.moduleAffecte === 'LES_DEUX'
@@ -51,7 +52,6 @@ export function AgentN1DashboardPage() {
 
   const listParams = useMemo(
     () => ({
-      niveau: 'N1' as const,
       ...(moduleTab !== 'TOUS' ? { module: moduleTab } : {}),
       page,
       limit: PAGE_SIZE,
@@ -59,17 +59,18 @@ export function AgentN1DashboardPage() {
     [moduleTab, page],
   )
 
-  const demandesQuery = useDemandesList(listParams, { refetchInterval: 30_000 })
-  const validerN1 = useValiderN1()
-  const rejeterN1 = useRejeterN1()
+  const demandesQuery = useDemandesList(listParams)
+  const validerSuperviseur = useValiderSuperviseur()
+  const rejeterSuperviseur = useRejeterSuperviseur()
 
-  const isActionPending = validerN1.isPending || rejeterN1.isPending
+  const isActionPending =
+    validerSuperviseur.isPending || rejeterSuperviseur.isPending
 
   const handleValiderConfirm = async () => {
     if (!confirmTarget) return
 
     try {
-      const result = await validerN1.mutateAsync(confirmTarget.id)
+      const result = await validerSuperviseur.mutateAsync(confirmTarget.id)
       setFeedback({ variant: 'success', message: result.message })
       setConfirmTarget(null)
     } catch (error) {
@@ -77,7 +78,7 @@ export function AgentN1DashboardPage() {
         variant: 'error',
         message: getApiErrorMessage(
           error,
-          'La validation Agent 1 a échoué. Veuillez réessayer.',
+          'La validation Superviseur a échoué. Veuillez réessayer.',
         ),
       })
     }
@@ -87,7 +88,7 @@ export function AgentN1DashboardPage() {
     if (!rejetTarget) return
 
     try {
-      const result = await rejeterN1.mutateAsync({
+      const result = await rejeterSuperviseur.mutateAsync({
         id: rejetTarget.id,
         motif,
       })
@@ -98,28 +99,27 @@ export function AgentN1DashboardPage() {
         variant: 'error',
         message: getApiErrorMessage(
           error,
-          'Le rejet Agent 1 a échoué. Veuillez réessayer.',
+          'Le rejet Superviseur a échoué. Veuillez réessayer.',
         ),
       })
     }
   }
 
-  const listError =
-    demandesQuery.isError
-      ? getApiErrorMessage(
-          demandesQuery.error,
-          'Impossible de charger la file d\'attente Agent 1.',
-        )
-      : null
+  const listError = demandesQuery.isError
+    ? getApiErrorMessage(
+        demandesQuery.error,
+        'Impossible de charger la file d\'attente Superviseur.',
+      )
+    : null
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-semibold text-cnss-900">
-          File d&apos;attente
+          Arbitrage
         </h2>
         <p className="mt-1 text-slate-600">
-          Validation et rejet des demandes en attente de traitement.
+          Trancher les demandes en désaccord entre Agent 1 et Agent 2.
         </p>
       </div>
 
@@ -129,7 +129,7 @@ export function AgentN1DashboardPage() {
 
       <Card>
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Demandes en attente</CardTitle>
+          <CardTitle>Demandes à arbitrer</CardTitle>
 
           {showModuleTabs ? (
             <div
@@ -196,30 +196,27 @@ export function AgentN1DashboardPage() {
 
       <ConfirmDialog
         open={Boolean(confirmTarget)}
-        title="Confirmer la validation"
+        title="Confirmer la validation définitive"
         message={
           confirmTarget
-            ? `Valider la demande ${confirmTarget.numeroDemande} ?`
+            ? `Valider définitivement la demande ${confirmTarget.numeroDemande} ? Votre décision sera notifiée au demandeur.`
             : ''
         }
-        confirmLabel="Oui"
-        cancelLabel="Non"
-        isLoading={validerN1.isPending}
+        confirmLabel="Valider définitivement"
+        isLoading={validerSuperviseur.isPending}
         onConfirm={handleValiderConfirm}
         onCancel={() => setConfirmTarget(null)}
       />
 
       <RejetModal
         open={Boolean(rejetTarget)}
-        title="Rejeter la demande"
+        title="Rejeter la demande (Superviseur)"
         description={
           rejetTarget
-            ? `Rejeter la demande ${rejetTarget.numeroDemande} ?`
+            ? `Indiquez le motif de rejet pour ${rejetTarget.numeroDemande}. Le demandeur sera notifié.`
             : undefined
         }
-        confirmLabel="Oui"
-        cancelLabel="Non"
-        isLoading={rejeterN1.isPending}
+        isLoading={rejeterSuperviseur.isPending}
         onClose={() => setRejetTarget(null)}
         onSubmit={handleRejetSubmit}
       />

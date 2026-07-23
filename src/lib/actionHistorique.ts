@@ -1,6 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  ArrowLeftRight,
   CheckCircle2,
   FilePlus,
   XCircle,
@@ -13,6 +12,8 @@ export type ActionHistorique =
   | 'REJET_N1'
   | 'VALIDATION_N2'
   | 'REJET_N2'
+  | 'VALIDATION_SUPERVISEUR'
+  | 'REJET_SUPERVISEUR'
 
 export interface ActionHistoriqueMeta {
   label: string
@@ -28,24 +29,34 @@ export const ACTION_HISTORIQUE_MAP: Record<ActionHistorique, ActionHistoriqueMet
       tone: 'neutral',
     },
     VALIDATION_N1: {
-      label: 'Validation N1',
+      label: 'Validation Agent 1',
       icon: CheckCircle2,
       tone: 'success',
     },
     REJET_N1: {
-      label: 'Rejet N1',
+      label: 'Rejet Agent 1',
       icon: XCircle,
       tone: 'danger',
     },
     VALIDATION_N2: {
-      label: 'Validation définitive N2',
+      label: 'Validation Agent 2',
       icon: CheckCircle2,
       tone: 'success',
     },
     REJET_N2: {
-      label: 'Rejet N2 — retour N1',
-      icon: ArrowLeftRight,
-      tone: 'warning',
+      label: 'Rejet Agent 2',
+      icon: XCircle,
+      tone: 'danger',
+    },
+    VALIDATION_SUPERVISEUR: {
+      label: 'Validation définitive Superviseur',
+      icon: CheckCircle2,
+      tone: 'success',
+    },
+    REJET_SUPERVISEUR: {
+      label: 'Rejet définitif Superviseur',
+      icon: XCircle,
+      tone: 'danger',
     },
   }
 

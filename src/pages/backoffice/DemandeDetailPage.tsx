@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, FileText, History, X } from 'lucide-react'
 import { Alert, Button, CardContent, Skeleton } from '@/components/ui'
 import {
@@ -21,8 +21,10 @@ import {
   useDemandeDetail,
   useRejeterN1,
   useRejeterN2,
+  useRejeterSuperviseur,
   useValiderN1,
   useValiderN2,
+  useValiderSuperviseur,
 } from '@/features/validation/hooks'
 import {
   MODULE_LABELS,
@@ -32,20 +34,31 @@ import type { StatutDemande } from '@/lib/statutDemande'
 import { cn } from '@/lib/cn'
 
 type DetailTab = 'details' | 'historique'
-type ActionNiveau = 'N1' | 'N2'
+type ActionNiveau = 'N1' | 'N2' | 'SUPERVISEUR'
 
 const TABS: { id: DetailTab; label: string; icon: typeof FileText }[] = [
   { id: 'details', label: 'Détails', icon: FileText },
   { id: 'historique', label: 'Historique', icon: History },
 ]
 
-const N1_STATUTS: StatutDemande[] = ['EN_ATTENTE_N1', 'REJETEE_N2_RETOUR_N1']
+const N1_STATUTS: StatutDemande[] = ['EN_ATTENTE_N1']
 const N2_STATUTS: StatutDemande[] = ['EN_ATTENTE_N2', 'REJETEE_N1_EN_ATTENTE_N2']
+const SUPERVISEUR_STATUTS: StatutDemande[] = ['EN_ATTENTE_SUPERVISEUR']
 
-function resolveBackLink(role: string | undefined): {
+function resolveBackLink(
+  role: string | undefined,
+  fromHistorique: boolean,
+): {
   backTo: string
   backLabel: string
 } {
+  if (fromHistorique) {
+    return {
+      backTo: '/backoffice/historique',
+      backLabel: 'Retour à l\'historique',
+    }
+  }
+
   switch (role) {
     case 'ADMINISTRATEUR':
       return {
@@ -56,6 +69,11 @@ function resolveBackLink(role: string | undefined): {
       return {
         backTo: '/backoffice/agent',
         backLabel: 'Retour à la file',
+      }
+    case 'SUPERVISEUR':
+      return {
+        backTo: '/backoffice/superviseur',
+        backLabel: 'Retour à l\'arbitrage',
       }
     default:
       return {
@@ -69,7 +87,7 @@ function parseTab(value: string | null): DetailTab {
   return value === 'historique' ? 'historique' : 'details'
 }
 
-/** Aligné sur DemandeVoter (VALIDATE/REJECT N1|N2). */
+/** Aligné sur DemandeVoter (VALIDATE/REJECT N1|N2|SUPERVISEUR). */
 function resolveActionNiveau(
   user: AuthUser | null | undefined,
   demande: DemandeDetail,
@@ -91,20 +109,26 @@ function resolveActionNiveau(
     return N2_STATUTS.includes(demande.statut) ? 'N2' : null
   }
 
+  if (user.role === 'SUPERVISEUR') {
+    return SUPERVISEUR_STATUTS.includes(demande.statut) ? 'SUPERVISEUR' : null
+  }
+
   return null
 }
 
 /**
  * UC-11 / RG-11 : détail + historique sur une même page (onglets).
- * UC-06 à UC-10 : actions Valider / Rejeter selon rôle et statut.
+ * UC-06 à UC-10 + arbitrage Superviseur : actions Valider / Rejeter selon rôle et statut.
  */
 export function DemandeDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const demandeId = id ?? null
   const [searchParams, setSearchParams] = useSearchParams()
   const activeTab = parseTab(searchParams.get('onglet'))
   const user = useAuthStore((s) => s.user)
-  const { backTo, backLabel } = resolveBackLink(user?.role)
+  const fromHistorique = searchParams.get('from') === 'historique'
+  const { backTo, backLabel } = resolveBackLink(user?.role, fromHistorique)
   const { feedback, setFeedback, clearFeedback } = useFlashFeedback()
 
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -118,12 +142,16 @@ export function DemandeDetailPage() {
   const rejeterN1 = useRejeterN1()
   const validerN2 = useValiderN2()
   const rejeterN2 = useRejeterN2()
+  const validerSuperviseur = useValiderSuperviseur()
+  const rejeterSuperviseur = useRejeterSuperviseur()
 
   const isActionPending =
     validerN1.isPending ||
     rejeterN1.isPending ||
     validerN2.isPending ||
-    rejeterN2.isPending
+    rejeterN2.isPending ||
+    validerSuperviseur.isPending ||
+    rejeterSuperviseur.isPending
 
   const detailError = detailQuery.isError
     ? getApiErrorMessage(
@@ -139,6 +167,13 @@ export function DemandeDetailPage() {
     )
   }
 
+  const redirectToQueue = (message: string) => {
+    navigate(backTo, {
+      replace: true,
+      state: { flash: { variant: 'success' as const, message } },
+    })
+  }
+
   const handleValiderConfirm = async () => {
     if (!demandeId || !actionNiveau) return
 
@@ -146,18 +181,21 @@ export function DemandeDetailPage() {
       const result =
         actionNiveau === 'N1'
           ? await validerN1.mutateAsync(demandeId)
-          : await validerN2.mutateAsync(demandeId)
+          : actionNiveau === 'N2'
+            ? await validerN2.mutateAsync(demandeId)
+            : await validerSuperviseur.mutateAsync(demandeId)
       setConfirmOpen(false)
-      setFeedback({ variant: 'success', message: result.message })
+      redirectToQueue(result.message)
     } catch (error) {
+      const fallback =
+        actionNiveau === 'N1'
+          ? 'La validation a échoué. Veuillez réessayer.'
+          : actionNiveau === 'N2'
+            ? 'La validation a échoué. Veuillez réessayer.'
+            : 'La validation Superviseur a échoué. Veuillez réessayer.'
       setFeedback({
         variant: 'error',
-        message: getApiErrorMessage(
-          error,
-          actionNiveau === 'N1'
-            ? 'La validation N1 a échoué. Veuillez réessayer.'
-            : 'La validation définitive N2 a échoué. Veuillez réessayer.',
-        ),
+        message: getApiErrorMessage(error, fallback),
       })
     }
   }
@@ -169,18 +207,21 @@ export function DemandeDetailPage() {
       const result =
         actionNiveau === 'N1'
           ? await rejeterN1.mutateAsync({ id: demandeId, motif })
-          : await rejeterN2.mutateAsync({ id: demandeId, motif })
+          : actionNiveau === 'N2'
+            ? await rejeterN2.mutateAsync({ id: demandeId, motif })
+            : await rejeterSuperviseur.mutateAsync({ id: demandeId, motif })
       setRejetOpen(false)
-      setFeedback({ variant: 'success', message: result.message })
+      redirectToQueue(result.message)
     } catch (error) {
+      const fallback =
+        actionNiveau === 'N1'
+          ? 'Le rejet a échoué. Veuillez réessayer.'
+          : actionNiveau === 'N2'
+            ? 'Le rejet a échoué. Veuillez réessayer.'
+            : 'Le rejet Superviseur a échoué. Veuillez réessayer.'
       setFeedback({
         variant: 'error',
-        message: getApiErrorMessage(
-          error,
-          actionNiveau === 'N1'
-            ? 'Le rejet N1 a échoué. Veuillez réessayer.'
-            : 'Le rejet N2 a échoué. Veuillez réessayer.',
-        ),
+        message: getApiErrorMessage(error, fallback),
       })
     }
   }
@@ -188,6 +229,8 @@ export function DemandeDetailPage() {
   if (!demandeId) {
     return <Navigate to={backTo} replace />
   }
+
+  const validerButtonLabel = 'Valider'
 
   return (
     <div className="space-y-5">
@@ -226,7 +269,7 @@ export function DemandeDetailPage() {
               onClick={() => setConfirmOpen(true)}
             >
               <Check className="size-4" aria-hidden="true" />
-              {actionNiveau === 'N2' ? 'Valider définitivement' : 'Valider'}
+              {validerButtonLabel}
             </Button>
           </div>
         ) : null}
@@ -253,7 +296,10 @@ export function DemandeDetailPage() {
                   {MODULE_LABELS[demande.module]}
                 </p>
               </div>
-              <BadgeStatutDemande statut={demande.statut} />
+              <BadgeStatutDemande
+                statut={demande.statut}
+                compact={user?.role !== 'ADMINISTRATEUR'}
+              />
             </div>
           ) : (
             <p className="text-sm text-slate-500">Demande introuvable</p>
@@ -333,21 +379,26 @@ export function DemandeDetailPage() {
       <ConfirmDialog
         open={confirmOpen}
         title={
-          actionNiveau === 'N2'
+          actionNiveau === 'SUPERVISEUR'
             ? 'Confirmer la validation définitive'
-            : 'Confirmer la validation N1'
+            : 'Confirmer la validation'
         }
         message={
           demande
-            ? actionNiveau === 'N2'
-              ? `Valider définitivement la demande ${demande.numeroDemande} ? Cette action est irréversible.`
-              : `Valider la demande ${demande.numeroDemande} et la transmettre au chef N2 ?`
+            ? actionNiveau === 'SUPERVISEUR'
+              ? `Valider définitivement la demande ${demande.numeroDemande} ? Votre décision sera notifiée au demandeur.`
+              : `Valider la demande ${demande.numeroDemande} ?`
             : ''
         }
         confirmLabel={
-          actionNiveau === 'N2' ? 'Valider définitivement' : 'Valider'
+          actionNiveau === 'SUPERVISEUR' ? 'Valider définitivement' : 'Oui'
         }
-        isLoading={validerN1.isPending || validerN2.isPending}
+        cancelLabel={actionNiveau === 'SUPERVISEUR' ? 'Annuler' : 'Non'}
+        isLoading={
+          validerN1.isPending ||
+          validerN2.isPending ||
+          validerSuperviseur.isPending
+        }
         onConfirm={handleValiderConfirm}
         onCancel={() => setConfirmOpen(false)}
       />
@@ -355,18 +406,24 @@ export function DemandeDetailPage() {
       <RejetModal
         open={rejetOpen}
         title={
-          actionNiveau === 'N2'
-            ? 'Rejeter la demande (N2)'
-            : 'Rejeter la demande (N1)'
+          actionNiveau === 'SUPERVISEUR'
+            ? 'Rejeter la demande (Superviseur)'
+            : 'Rejeter la demande'
         }
         description={
           demande
-            ? actionNiveau === 'N2'
-              ? `Indiquez le motif de rejet pour ${demande.numeroDemande}. La demande sera renvoyée à l'agent N1.`
-              : `Indiquez le motif de rejet pour ${demande.numeroDemande}.`
+            ? actionNiveau === 'SUPERVISEUR'
+              ? `Indiquez le motif de rejet pour ${demande.numeroDemande}. Le demandeur sera notifié.`
+              : `Rejeter la demande ${demande.numeroDemande} ?`
             : undefined
         }
-        isLoading={rejeterN1.isPending || rejeterN2.isPending}
+        confirmLabel={actionNiveau === 'SUPERVISEUR' ? 'Confirmer le rejet' : 'Oui'}
+        cancelLabel={actionNiveau === 'SUPERVISEUR' ? 'Annuler' : 'Non'}
+        isLoading={
+          rejeterN1.isPending ||
+          rejeterN2.isPending ||
+          rejeterSuperviseur.isPending
+        }
         onClose={() => setRejetOpen(false)}
         onSubmit={handleRejetSubmit}
       />

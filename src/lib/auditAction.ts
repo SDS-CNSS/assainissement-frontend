@@ -17,6 +17,9 @@ export type AuditAction =
   | 'DEMANDE_REJET_N1'
   | 'DEMANDE_VALIDATION_N2'
   | 'DEMANDE_REJET_N2'
+  | 'DEMANDE_VALIDATION_SUPERVISEUR'
+  | 'DEMANDE_REJET_SUPERVISEUR'
+  | 'CONSOLIDATION'
 
 export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   LOGIN_SUCCESS: 'Connexion réussie',
@@ -30,10 +33,13 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   UTILISATEUR_DEVERROUILLER: 'Déverrouillage de compte',
   STATISTIQUES_EXPORT: 'Export statistiques',
   PASSWORD_CHANGE: 'Changement de mot de passe',
-  DEMANDE_VALIDATION_N1: 'Validation N1 de demande',
-  DEMANDE_REJET_N1: 'Rejet N1 de demande',
-  DEMANDE_VALIDATION_N2: 'Validation N2 de demande',
-  DEMANDE_REJET_N2: 'Rejet N2 de demande',
+  DEMANDE_VALIDATION_N1: 'Validation Agent 1 de demande',
+  DEMANDE_REJET_N1: 'Rejet Agent 1 de demande',
+  DEMANDE_VALIDATION_N2: 'Validation Agent 2 de demande',
+  DEMANDE_REJET_N2: 'Rejet Agent 2 de demande',
+  DEMANDE_VALIDATION_SUPERVISEUR: 'Validation Superviseur de demande',
+  DEMANDE_REJET_SUPERVISEUR: 'Rejet Superviseur de demande',
+  CONSOLIDATION: 'Consolidation référentiel',
 }
 
 export const AUDIT_ACTION_OPTIONS = (
@@ -67,6 +73,7 @@ export function formatAuditLogReference(id: string, timestamp: string): string {
 
 export const ROLE_SHORT_LABELS: Record<UserRole, string> = {
   ADMINISTRATEUR: 'ADMIN',
-  AGENT_VALIDATION: 'AGENT',
-  CHEF_VALIDATION: 'CHEF',
+  AGENT_VALIDATION: 'AGENT 1',
+  CHEF_VALIDATION: 'AGENT 2',
+  SUPERVISEUR: 'SUPERVISEUR',
 }

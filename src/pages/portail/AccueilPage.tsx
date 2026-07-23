@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn'
 const parcours = [
   {
     title: 'Employeurs',
-    subtitle: 'Assainissement IFU',
+    subtitle: 'Mise à jour IFU',
     description:
       'Vérifiez et mettez à jour votre Identifiant Fiscal Unique.',
     to: '/employeur',
@@ -15,7 +15,7 @@ const parcours = [
   },
   {
     title: 'Travailleurs',
-    subtitle: 'Assainissement NPI',
+    subtitle: 'Mise à jour NPI',
     description:
       'Confirmez votre Numéro Personnel d’Identification.',
     to: '/travailleur',
@@ -56,7 +56,7 @@ export function AccueilPage() {
             className="animate-fade-up mt-5 max-w-2xl font-display text-[1.75rem] font-bold leading-tight tracking-tight text-cnss-900 sm:mt-6 sm:text-4xl lg:text-[2.85rem] lg:leading-[1.12]"
             style={{ animationDelay: '90ms' }}
           >
-            Portail d&apos;assainissement IFU &amp; NPI
+            Portail de mise à jour IFU &amp; NPI
           </h1>
 
           <p

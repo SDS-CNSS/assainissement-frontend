@@ -31,7 +31,7 @@ import {
 } from '@/features/demandes/schemas'
 import { MODULE_LABELS } from '@/features/validation/types'
 import {
-  getStatutDemandeMeta,
+  getStatutSuiviPublicMeta,
   getSuiviProgressStep,
 } from '@/lib/statutDemande'
 import { cn } from '@/lib/cn'
@@ -115,7 +115,7 @@ export function SuiviPage() {
       : null
 
   const result = suiviQuery.data
-  const statutMeta = result ? getStatutDemandeMeta(result.statut) : null
+  const statutMeta = result ? getStatutSuiviPublicMeta(result.statut) : null
   const StatutIcon = statutMeta?.icon
 
   return (
@@ -164,7 +164,7 @@ export function SuiviPage() {
                     />
                     <Input
                       id="numeroDemande"
-                      placeholder="DEM-2026-000001"
+                      placeholder="A1B23C45D6"
                       autoComplete="off"
                       hasError={Boolean(errors.numeroDemande)}
                       className="h-12 pl-10 font-mono text-[15px] tracking-wide"
@@ -186,7 +186,8 @@ export function SuiviPage() {
                   </p>
                 ) : (
                   <p className="text-xs text-slate-500">
-                    Format attendu&nbsp;: DEM-AAAA-NNNNNN
+                    Format attendu&nbsp;: 4 lettres + 6 chiffres, dans n&apos;importe quel
+                    ordre (ex.&nbsp;A1B23C45D6)
                   </p>
                 )}
               </div>
@@ -253,7 +254,7 @@ export function SuiviPage() {
                       {MODULE_LABELS[result.module]}
                     </p>
                   </div>
-                  <BadgeStatutDemande statut={result.statut} />
+                  <BadgeStatutDemande statut={result.statut} publicSuivi />
                 </div>
               </div>
 

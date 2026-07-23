@@ -112,8 +112,9 @@ export interface SupervisionListResponse {
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  AGENT_VALIDATION: 'Agent validation N1',
-  CHEF_VALIDATION: 'Chef validation N2',
+  AGENT_VALIDATION: 'Agent 1',
+  CHEF_VALIDATION: 'Agent 2',
+  SUPERVISEUR: 'Superviseur',
   ADMINISTRATEUR: 'Administrateur',
 }
 

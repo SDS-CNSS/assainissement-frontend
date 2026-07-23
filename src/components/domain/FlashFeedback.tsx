@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Alert } from '@/components/ui'
 
 export const FLASH_FEEDBACK_DURATION_MS = 3000
@@ -14,6 +15,32 @@ export function useFlashFeedback() {
   const setFeedback = useCallback((next: FlashFeedbackState) => {
     setFeedbackState(next)
   }, [])
+
+  return { feedback, setFeedback, clearFeedback }
+}
+
+/** Affiche un flash passé via `navigate(..., { state: { flash } })`. */
+export function useFlashFromNavigation() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { feedback, setFeedback, clearFeedback } = useFlashFeedback()
+
+  useEffect(() => {
+    const state = location.state as { flash?: FlashFeedbackState } | null
+    if (!state?.flash) return
+
+    setFeedback(state.flash)
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: {},
+    })
+  }, [
+    location.pathname,
+    location.search,
+    location.state,
+    navigate,
+    setFeedback,
+  ])
 
   return { feedback, setFeedback, clearFeedback }
 }

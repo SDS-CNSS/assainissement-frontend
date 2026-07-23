@@ -19,14 +19,11 @@ interface TableauDeBordRaw {
 function mapTableauDeBord(raw: TableauDeBordRaw): TableauDeBordStats {
   const parStatut = raw.totalParStatut ?? {}
 
-  const rejetees =
-    (parStatut.REJETEE_N1_EN_ATTENTE_N2 ?? 0) +
-    (parStatut.REJETEE_N2_RETOUR_N1 ?? 0)
+  const rejetees = parStatut.REJETEE_DEFINITIVEMENT ?? 0
 
   return {
     totalDemandes: raw.totalGeneral ?? 0,
-    enAttenteN1:
-      (parStatut.EN_ATTENTE_N1 ?? 0) + (parStatut.REJETEE_N2_RETOUR_N1 ?? 0),
+    enAttenteN1: parStatut.EN_ATTENTE_N1 ?? 0,
     enAttenteN2:
       (parStatut.EN_ATTENTE_N2 ?? 0) +
       (parStatut.REJETEE_N1_EN_ATTENTE_N2 ?? 0),

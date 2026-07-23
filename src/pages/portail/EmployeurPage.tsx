@@ -9,7 +9,7 @@ export function EmployeurPage() {
         icon={Building2}
         badge="Parcours employeur · IFU"
         title="Dépôt de demande"
-        description="Assainissez votre Identifiant Fiscal Unique (IFU)."
+        description="Mettez à jour votre Identifiant Fiscal Unique (IFU)."
       />
 
       <section className="relative z-10 bg-white">
