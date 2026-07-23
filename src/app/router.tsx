@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useParams } from 'react-router-dom'
 import { BackofficeLayout } from '@/components/layouts/BackofficeLayout'
 import { PortailLayout } from '@/components/layouts/PortailLayout'
 import {
@@ -16,14 +16,25 @@ import { AdminUtilisateursPage } from '@/pages/backoffice/AdminUtilisateursPage'
 import { AgentN1DashboardPage } from '@/pages/backoffice/AgentN1DashboardPage'
 import { BackofficeHomeRedirect } from '@/pages/backoffice/BackofficeHomeRedirect'
 import { ChangePasswordPage } from '@/pages/backoffice/ChangePasswordPage'
-import { ChefHistoriquePage } from '@/pages/backoffice/ChefHistoriquePage'
 import { ChefN2DashboardPage } from '@/pages/backoffice/ChefN2DashboardPage'
+import { DemandeDetailPage } from '@/pages/backoffice/DemandeDetailPage'
 import { LoginPage } from '@/pages/backoffice/LoginPage'
 import { ProfilPage } from '@/pages/backoffice/ProfilPage'
 import { AccueilPage } from '@/pages/portail/AccueilPage'
 import { EmployeurPage } from '@/pages/portail/EmployeurPage'
 import { SuiviPage } from '@/pages/portail/SuiviPage'
 import { TravailleurPage } from '@/pages/portail/TravailleurPage'
+
+/** Redirection de l'ancienne URL historique (favoris / liens) vers la page unifiée. */
+function LegacyHistoriqueRedirect() {
+  const { id } = useParams<{ id: string }>()
+  return (
+    <Navigate
+      to={`/backoffice/demandes/${id}?onglet=historique`}
+      replace
+    />
+  )
+}
 
 export const router = createBrowserRouter([
   {
@@ -65,7 +76,7 @@ export const router = createBrowserRouter([
                 ],
               },
               {
-                // UC-11 / RG-11 : historique consultable par Agent N1, Chef N2 et Admin
+                // UC-11 / RG-11 : détail + historique (Agent N1, Chef N2, Admin)
                 element: (
                   <RequireRole
                     roles={[
@@ -77,8 +88,12 @@ export const router = createBrowserRouter([
                 ),
                 children: [
                   {
+                    path: 'demandes/:id',
+                    element: <DemandeDetailPage />,
+                  },
+                  {
                     path: 'chef/historique/:id',
-                    element: <ChefHistoriquePage />,
+                    element: <LegacyHistoriqueRedirect />,
                   },
                 ],
               },

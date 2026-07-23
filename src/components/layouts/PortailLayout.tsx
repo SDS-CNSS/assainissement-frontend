@@ -14,7 +14,6 @@ export function PortailLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const menuId = useId()
-
   useEffect(() => {
     setMenuOpen(false)
   }, [location.pathname])
@@ -35,7 +34,7 @@ export function PortailLayout() {
 
   return (
     <div className="flex min-h-svh flex-col bg-slate-50">
-      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-3.5">
           <Link
             to="/"
@@ -45,7 +44,7 @@ export function PortailLayout() {
             <img
               src={cnssLogo}
               alt="Logo CNSS"
-              className="size-9 shrink-0 rounded-lg object-contain sm:size-10"
+              className="size-9 shrink-0 rounded-xl object-contain sm:size-10"
             />
             <div className="min-w-0 text-left">
               <p className="font-display text-sm font-semibold text-cnss-900 truncate">
@@ -66,7 +65,7 @@ export function PortailLayout() {
                 key={link.to}
                 to={link.to}
                 className={cn(
-                  'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'rounded-xl px-3.5 py-2 text-sm font-medium transition-colors',
                   location.pathname === link.to
                     ? 'bg-cnss-50 text-cnss-800'
                     : 'text-slate-600 hover:bg-cnss-50 hover:text-cnss-800',
@@ -79,7 +78,7 @@ export function PortailLayout() {
 
           <button
             type="button"
-            className="inline-flex size-10 items-center justify-center rounded-lg text-cnss-800 transition-colors hover:bg-cnss-50 md:hidden"
+            className="inline-flex size-10 items-center justify-center rounded-xl text-cnss-800 transition-colors hover:bg-cnss-50 md:hidden"
             aria-expanded={menuOpen}
             aria-controls={menuId}
             aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
@@ -130,34 +129,52 @@ export function PortailLayout() {
       {menuOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-30 bg-slate-900/25 md:hidden"
+          className="fixed inset-0 z-30 bg-slate-900/40 md:hidden"
           aria-label="Fermer le menu"
           onClick={() => setMenuOpen(false)}
         />
       ) : null}
 
-      <main className="relative z-0 flex-1 min-w-0 overflow-x-clip">
+      <main className="relative z-0 flex-1 min-w-0 overflow-x-clip bg-cnss-50">
         <Outlet />
       </main>
 
       <footer className="border-t border-slate-200/80 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-          <Link to="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-            <img
-              src={cnssLogo}
-              alt="Logo CNSS"
-              className="size-9 shrink-0 rounded-lg object-contain sm:size-10"
-            />
-            <div className="min-w-0 text-left">
-              <p className="font-display text-sm font-semibold text-cnss-900">
-                CNSS — Bénin
-              </p>
-              <p className="text-xs text-slate-500 sm:text-sm">
-                Portail public d&apos;assainissement des identifiants IFU et NPI.
-              </p>
-            </div>
-          </Link>
-          <p className="mt-6 border-t border-slate-100 pt-5 text-xs text-slate-400">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
+          <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+            <Link to="/" className="flex min-w-0 items-center gap-3">
+              <img
+                src={cnssLogo}
+                alt="Logo CNSS"
+                className="size-10 shrink-0 rounded-xl object-contain"
+              />
+              <div className="min-w-0 text-left">
+                <p className="font-display text-sm font-semibold text-cnss-900">
+                  CNSS — Bénin
+                </p>
+                <p className="mt-0.5 max-w-xs text-xs leading-relaxed text-slate-500 sm:text-sm">
+                  Portail public d&apos;assainissement des identifiants IFU et
+                  NPI.
+                </p>
+              </div>
+            </Link>
+
+            <nav
+              className="flex flex-wrap gap-x-5 gap-y-2"
+              aria-label="Liens pied de page"
+            >
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="text-sm font-medium text-slate-600 transition-colors hover:text-cnss-700"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <p className="mt-8 border-t border-slate-100 pt-5 text-xs text-slate-400">
             © {new Date().getFullYear()} CNSS — Bénin · Tous droits réservés
           </p>
         </div>

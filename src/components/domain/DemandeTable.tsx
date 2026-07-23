@@ -235,7 +235,7 @@ export function DemandeTable({
                   {showValidationActions ? (
                     <>
                       <Button
-                        variant="secondary"
+                        variant="success"
                         size="sm"
                         disabled={isActionPending}
                         onClick={() => onValider(demande)}

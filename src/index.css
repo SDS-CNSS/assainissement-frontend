@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 @config '../tailwind.config.ts';
 
@@ -20,5 +20,23 @@
 
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-cnss-400;
+  }
+}
+
+@layer utilities {
+  .bg-mesh-hero {
+    background-image:
+      radial-gradient(ellipse 80% 60% at 15% 20%, rgb(79 163 240 / 0.35), transparent 55%),
+      radial-gradient(ellipse 55% 45% at 85% 15%, rgb(125 190 245 / 0.22), transparent 50%),
+      radial-gradient(ellipse 50% 55% at 70% 85%, rgb(42 61 184 / 0.5), transparent 55%),
+      radial-gradient(ellipse 40% 40% at 10% 90%, rgb(20 20 158 / 0.4), transparent 50%);
+  }
+
+  .bg-grid-fade {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 75%);
   }
 }

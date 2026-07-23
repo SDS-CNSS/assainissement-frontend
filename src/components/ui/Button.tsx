@@ -11,6 +11,8 @@ const variantStyles = {
     'border border-cnss-700 text-cnss-700 bg-white hover:bg-cnss-50 active:bg-cnss-100',
   ghost: 'text-cnss-700 hover:bg-cnss-100 active:bg-cnss-100/80',
   danger: 'bg-statut-rejetee text-white hover:bg-red-600 active:bg-red-700',
+  success:
+    'bg-statut-validee text-white hover:brightness-95 active:brightness-90 disabled:bg-statut-validee/50',
 } as const
 
 const sizeStyles = {

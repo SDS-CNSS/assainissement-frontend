@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import {
   Alert,
@@ -10,13 +11,12 @@ import {
   Label,
   Skeleton,
 } from '@/components/ui'
-import { DemandeDetailPanel } from '@/components/domain/DemandeDetailPanel'
 import { DemandeTable } from '@/components/domain/DemandeTable'
 import { TablePagination } from '@/components/domain/TablePagination'
 import { getApiErrorMessage } from '@/api/types'
 import { useSupervisionList } from '@/features/admin/hooks'
 import type { SupervisionFilters } from '@/features/admin/types'
-import type { DemandeListItem, ModuleFilterTab } from '@/features/validation/types'
+import type { ModuleFilterTab } from '@/features/validation/types'
 import { STATUT_DEMANDE_MAP } from '@/lib/statutDemande'
 import type { StatutDemande } from '@/lib/statutDemande'
 import { DEFAULT_PAGE, PAGE_SIZE } from '@/lib/pagination'
@@ -30,14 +30,11 @@ const MODULE_TABS: { value: ModuleFilterTab; label: string }[] = [
 
 /** UC-14 : supervision globale de toutes les demandes. */
 export function AdminSupervisionPage() {
+  const navigate = useNavigate()
   const [moduleTab, setModuleTab] = useState<ModuleFilterTab>('TOUS')
   const [statutFilter, setStatutFilter] = useState<StatutDemande | ''>('')
   const [searchInput, setSearchInput] = useState('')
   const [appliedSearch, setAppliedSearch] = useState('')
-  const [selectedDemande, setSelectedDemande] = useState<DemandeListItem | null>(
-    null,
-  )
-  const [detailOpen, setDetailOpen] = useState(false)
   const [page, setPage] = useState(DEFAULT_PAGE)
 
   const filters = useMemo<SupervisionFilters>(
@@ -60,11 +57,6 @@ export function AdminSupervisionPage() {
           'Impossible de charger les demandes.',
         )
       : null
-
-  const openDetail = (demande: DemandeListItem) => {
-    setSelectedDemande(demande)
-    setDetailOpen(true)
-  }
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault()
@@ -183,9 +175,10 @@ export function AdminSupervisionPage() {
           ) : (
             <DemandeTable
               demandes={supervisionQuery.data?.demandes ?? []}
-              selectedId={selectedDemande?.id}
               readonly
-              onViewDetail={openDetail}
+              onViewDetail={(demande) =>
+                navigate(`/backoffice/demandes/${demande.id}`)
+              }
             />
           )}
 
@@ -201,17 +194,6 @@ export function AdminSupervisionPage() {
           ) : null}
         </CardContent>
       </Card>
-
-      <DemandeDetailPanel
-        demandeId={selectedDemande?.id ?? null}
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        historiqueHref={
-          selectedDemande
-            ? `/backoffice/chef/historique/${selectedDemande.id}`
-            : undefined
-        }
-      />
     </div>
   )
 }

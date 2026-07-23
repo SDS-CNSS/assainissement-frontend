@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Alert,
   Card,
@@ -12,7 +13,6 @@ import {
   FlashFeedback,
   useFlashFeedback,
 } from '@/components/domain/FlashFeedback'
-import { DemandeDetailPanel } from '@/components/domain/DemandeDetailPanel'
 import { DemandeTable } from '@/components/domain/DemandeTable'
 import { RejetModal } from '@/components/domain/RejetModal'
 import { TablePagination } from '@/components/domain/TablePagination'
@@ -37,14 +37,11 @@ const MODULE_TABS: { value: ModuleFilterTab; label: string }[] = [
 ]
 
 export function AgentN1DashboardPage() {
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const showModuleTabs = user?.moduleAffecte === 'LES_DEUX'
 
   const [moduleTab, setModuleTab] = useState<ModuleFilterTab>('TOUS')
-  const [selectedDemande, setSelectedDemande] = useState<DemandeListItem | null>(
-    null,
-  )
-  const [detailOpen, setDetailOpen] = useState(false)
   const [rejetTarget, setRejetTarget] = useState<DemandeListItem | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<DemandeListItem | null>(
     null,
@@ -68,15 +65,6 @@ export function AgentN1DashboardPage() {
 
   const isActionPending = validerN1.isPending || rejeterN1.isPending
 
-  const openDetail = (demande: DemandeListItem) => {
-    setSelectedDemande(demande)
-    setDetailOpen(true)
-  }
-
-  const closeDetail = () => {
-    setDetailOpen(false)
-  }
-
   const handleValiderConfirm = async () => {
     if (!confirmTarget) return
 
@@ -84,10 +72,6 @@ export function AgentN1DashboardPage() {
       const result = await validerN1.mutateAsync(confirmTarget.id)
       setFeedback({ variant: 'success', message: result.message })
       setConfirmTarget(null)
-      if (selectedDemande?.id === confirmTarget.id) {
-        closeDetail()
-        setSelectedDemande(null)
-      }
     } catch (error) {
       setFeedback({
         variant: 'error',
@@ -109,10 +93,6 @@ export function AgentN1DashboardPage() {
       })
       setFeedback({ variant: 'success', message: result.message })
       setRejetTarget(null)
-      if (selectedDemande?.id === rejetTarget.id) {
-        closeDetail()
-        setSelectedDemande(null)
-      }
     } catch (error) {
       setFeedback({
         variant: 'error',
@@ -191,9 +171,10 @@ export function AgentN1DashboardPage() {
           ) : (
             <DemandeTable
               demandes={demandesQuery.data?.demandes ?? []}
-              selectedId={selectedDemande?.id}
               isActionPending={isActionPending}
-              onViewDetail={openDetail}
+              onViewDetail={(demande) =>
+                navigate(`/backoffice/demandes/${demande.id}`)
+              }
               onValider={setConfirmTarget}
               onRejeter={setRejetTarget}
             />
@@ -211,17 +192,6 @@ export function AgentN1DashboardPage() {
           ) : null}
         </CardContent>
       </Card>
-
-      <DemandeDetailPanel
-        demandeId={selectedDemande?.id ?? null}
-        open={detailOpen}
-        onClose={closeDetail}
-        historiqueHref={
-          selectedDemande
-            ? `/backoffice/chef/historique/${selectedDemande.id}`
-            : undefined
-        }
-      />
 
       <ConfirmDialog
         open={Boolean(confirmTarget)}
