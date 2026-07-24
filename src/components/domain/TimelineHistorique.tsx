@@ -30,6 +30,8 @@ const VALID_ACTIONS: ActionHistorique[] = [
   'REJET_N1',
   'VALIDATION_N2',
   'REJET_N2',
+  'VALIDATION_SUPERVISEUR',
+  'REJET_SUPERVISEUR',
 ]
 
 function isActionHistorique(value: string): value is ActionHistorique {

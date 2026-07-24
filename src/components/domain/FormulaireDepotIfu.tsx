@@ -34,7 +34,7 @@ import { maskEmail } from '@/lib/maskEmail'
 const STEPS = [
   { id: 'cnss', label: 'CNSS' },
   { id: 'ifu', label: 'IFU' },
-  { id: 'email', label: 'E-mail' },
+  { id: 'email', label: 'Courriel' },
   { id: 'confirmation', label: 'Confirmation' },
 ] as const
 
@@ -251,7 +251,7 @@ export function FormulaireDepotIfu() {
       {currentStep === 2 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Adresse e-mail</CardTitle>
+            <CardTitle>Adresse courriel</CardTitle>
             <CardDescription>
               IFU validé — raison sociale DGI :{' '}
               <span className="font-medium text-cnss-800">{raisonSocialeDgi}</span>
@@ -275,7 +275,7 @@ export function FormulaireDepotIfu() {
             >
               <div className="space-y-1.5">
                 <Label htmlFor="email" required>
-                  Adresse e-mail
+                  Adresse courriel
                 </Label>
                 <Input
                   id="email"
@@ -293,7 +293,7 @@ export function FormulaireDepotIfu() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="emailConfirmation" required>
-                  Confirmation de l&apos;e-mail
+                  Confirmation du courriel
                 </Label>
                 <Input
                   id="emailConfirmation"

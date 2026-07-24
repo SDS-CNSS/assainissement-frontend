@@ -40,7 +40,7 @@ describe('ifuEmailStepSchema — RG-07', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.emailConfirmation).toContain(
-        'Les deux adresses e-mail doivent être identiques.',
+        'Les deux adresses courriel doivent être identiques.',
       )
     }
   })

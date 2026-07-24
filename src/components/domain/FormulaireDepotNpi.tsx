@@ -37,7 +37,7 @@ import {
 const STEPS = [
   { id: 'cnss', label: 'CNSS' },
   { id: 'npi', label: 'NPI' },
-  { id: 'email', label: 'E-mail' },
+  { id: 'email', label: 'Courriel' },
   { id: 'otp', label: 'OTP' },
   { id: 'recap', label: 'Récapitulatif' },
   { id: 'confirmation', label: 'Confirmation' },
@@ -374,7 +374,7 @@ export function FormulaireDepotNpi() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="size-5 text-cnss-700" aria-hidden="true" />
-              Adresse e-mail
+              Adresse courriel
             </CardTitle>
             <CardDescription>
               Un code de vérification sera envoyé à cette adresse.
@@ -394,7 +394,7 @@ export function FormulaireDepotNpi() {
             >
               <div className="space-y-1.5">
                 <Label htmlFor="email" required>
-                  Adresse e-mail
+                  Adresse courriel
                 </Label>
                 <Input
                   id="email"
@@ -412,7 +412,7 @@ export function FormulaireDepotNpi() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="emailConfirmation" required>
-                  Confirmation de l&apos;e-mail
+                  Confirmation du courriel
                 </Label>
                 <Input
                   id="emailConfirmation"
@@ -547,7 +547,7 @@ export function FormulaireDepotNpi() {
             </CardTitle>
             <CardDescription>
               Vos informations ont été récupérées auprès de l&apos;ANIP. Confirmez
-              l&apos;adresse e-mail de la demande.
+              l&apos;adresse courriel de la demande.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -628,12 +628,12 @@ export function FormulaireDepotNpi() {
                 noValidate
               >
                 <p className="text-sm text-slate-600">
-                  Saisissez l&apos;adresse e-mail à utiliser pour les notifications
+                  Saisissez l&apos;adresse courriel à utiliser pour les notifications
                   de dépôt et de décision.
                 </p>
                 <div className="space-y-1.5">
                   <Label htmlFor="finalEmail" required>
-                    Adresse e-mail
+                    Adresse courriel
                   </Label>
                   <Input
                     id="finalEmail"
@@ -650,7 +650,7 @@ export function FormulaireDepotNpi() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="finalEmailConfirmation" required>
-                    Confirmation de l&apos;e-mail
+                    Confirmation du courriel
                   </Label>
                   <Input
                     id="finalEmailConfirmation"

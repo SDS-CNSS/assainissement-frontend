@@ -45,7 +45,11 @@ import {
   type UtilisateurCreateFormValues,
   type UtilisateurEditFormValues,
 } from '@/features/admin/schemas'
-import type { Direction, UtilisateurListItem } from '@/features/admin/types'
+import type {
+  CreateUtilisateurResponse,
+  Direction,
+  UtilisateurListItem,
+} from '@/features/admin/types'
 import {
   MODULE_AFFECTE_LABELS,
   ROLE_LABELS,
@@ -60,13 +64,6 @@ type UtilisateurCommonFormValues = Pick<
   UtilisateurCreateFormValues,
   'nom' | 'prenom' | 'role' | 'moduleAffecte' | 'directionId'
 >
-
-interface CreatedUserState {
-  utilisateur: UtilisateurListItem
-  motDePasseTemporaire: string
-  documentBase64: string
-  documentFilename: string
-}
 
 function SelectField({
   id,
@@ -115,7 +112,7 @@ export function AdminUtilisateursPage() {
   const [editTarget, setEditTarget] = useState<UtilisateurListItem | null>(null)
   const [detailTarget, setDetailTarget] = useState<UtilisateurListItem | null>(null)
   const [statutTarget, setStatutTarget] = useState<UtilisateurListItem | null>(null)
-  const [createdUser, setCreatedUser] = useState<CreatedUserState | null>(null)
+  const [createdUser, setCreatedUser] = useState<CreateUtilisateurResponse | null>(null)
   const [isDownloadingDoc, setIsDownloadingDoc] = useState(false)
   const { feedback, setFeedback, clearFeedback } = useFlashFeedback()
 
@@ -146,13 +143,20 @@ export function AdminUtilisateursPage() {
       moduleAffecte: 'EMPLOYEUR',
       directionId: directions[0]?.id ?? '',
     })
+    setCreatedUser(null)
     setCreateOpen(true)
+  }
+
+  const closeCreate = () => {
+    setCreateOpen(false)
+    setCreatedUser(null)
   }
 
   const openEdit = (utilisateur: UtilisateurListItem) => {
     editForm.reset({
       nom: utilisateur.nom,
       prenom: utilisateur.prenom,
+      identifiant: utilisateur.identifiant,
       role: utilisateur.role,
       moduleAffecte: utilisateur.moduleAffecte,
       directionId: utilisateur.directionId,
@@ -172,11 +176,10 @@ export function AdminUtilisateursPage() {
         prenom: values.prenom.trim(),
         identifiant,
       })
-      setCreateOpen(false)
       setCreatedUser(result)
       setFeedback({
         variant: 'success',
-        message: `Utilisateur ${result.utilisateur.identifiant} créé avec succès.`,
+        message: 'Utilisateur créé avec succès.',
       })
     } catch (error) {
       setFeedback({
@@ -189,18 +192,44 @@ export function AdminUtilisateursPage() {
     }
   })
 
+  const handleDownloadCredentials = async () => {
+    if (!createdUser) return
+
+    setIsDownloadingDoc(true)
+    try {
+      await downloadConnectionInfoDocx({
+        nom: createdUser.utilisateur.nom,
+        prenom: createdUser.utilisateur.prenom,
+        login: createdUser.utilisateur.identifiant,
+        password: createdUser.motDePasseTemporaire,
+        structure: createdUser.utilisateur.directionNom,
+      })
+    } catch {
+      setFeedback({
+        variant: 'error',
+        message: 'Impossible de générer le document Word. Réessayez.',
+      })
+    } finally {
+      setIsDownloadingDoc(false)
+    }
+  }
   const handleEdit = editForm.handleSubmit(async (values) => {
     if (!editTarget) return
 
     try {
       await updateUtilisateur.mutateAsync({
         id: editTarget.id,
-        payload: values,
+        payload: {
+          ...values,
+          nom: values.nom.trim(),
+          prenom: values.prenom.trim(),
+          identifiant: values.identifiant.trim(),
+        },
       })
       setEditTarget(null)
       setFeedback({
         variant: 'success',
-        message: `Utilisateur ${editTarget.identifiant} mis à jour.`,
+        message: `Utilisateur ${values.identifiant.trim()} mis à jour.`,
       })
     } catch (error) {
       setFeedback({
@@ -448,17 +477,46 @@ export function AdminUtilisateursPage() {
       </Card>
 
       {createOpen ? (
-        <FormSideDrawer
-          open={createOpen}
-          title="Nouvel utilisateur"
-          description="Créez un compte agent CNSS avec identifiant, rôle et direction d'affectation."
-          submitLabel="Créer l'utilisateur"
-          isLoading={createUtilisateur.isPending}
-          onClose={() => setCreateOpen(false)}
-          onSubmit={handleCreate}
-        >
-          <CreateFormFields form={createForm} directions={directions} />
-        </FormSideDrawer>
+        createdUser ? (
+          <SideDrawer
+            open={createOpen}
+            title="Utilisateur créé"
+            description="Téléchargez le document d'informations de connexion pour le transmettre de manière sécurisée à l'utilisateur (RG-19)."
+            onClose={closeCreate}
+            footer={
+              <div className="flex justify-end gap-3">
+                <Button type="button" variant="secondary" onClick={closeCreate}>
+                  Fermer
+                </Button>
+                <Button
+                  type="button"
+                  isLoading={isDownloadingDoc}
+                  onClick={handleDownloadCredentials}
+                >
+                  <Download className="size-4" aria-hidden="true" />
+                  Télécharger le document
+                </Button>
+              </div>
+            }
+          >
+            <Alert variant="success">
+              Le compte a été créé avec succès. Les identifiants de connexion
+              figurent uniquement dans le document téléchargeable.
+            </Alert>
+          </SideDrawer>
+        ) : (
+          <FormSideDrawer
+            open={createOpen}
+            title="Nouvel utilisateur"
+            description="Créez un compte agent CNSS avec identifiant, rôle et direction d'affectation."
+            submitLabel="Créer l'utilisateur"
+            isLoading={createUtilisateur.isPending}
+            onClose={closeCreate}
+            onSubmit={handleCreate}
+          >
+            <CreateFormFields form={createForm} directions={directions} />
+          </FormSideDrawer>
+        )
       ) : null}
 
       {editTarget ? (
@@ -505,33 +563,6 @@ export function AdminUtilisateursPage() {
         onCancel={() => setStatutTarget(null)}
         onConfirm={handleConfirmStatut}
       />
-
-      {createdUser ? (
-        <CreatedUserDialog
-          state={createdUser}
-          onClose={() => setCreatedUser(null)}
-          isDownloading={isDownloadingDoc}
-          onDownload={async () => {
-            setIsDownloadingDoc(true)
-            try {
-              await downloadConnectionInfoDocx({
-                nom: createdUser.utilisateur.nom,
-                prenom: createdUser.utilisateur.prenom,
-                login: createdUser.utilisateur.identifiant,
-                password: createdUser.motDePasseTemporaire,
-                structure: createdUser.utilisateur.directionNom,
-              })
-            } catch {
-              setFeedback({
-                variant: 'error',
-                message: 'Impossible de générer le document Word. Réessayez.',
-              })
-            } finally {
-              setIsDownloadingDoc(false)
-            }
-          }}
-        />
-      ) : null}
     </div>
   )
 }
@@ -605,19 +636,41 @@ function EditFormFields({
 }) {
   const {
     register,
+    control,
+    setValue,
     formState: { errors },
   } = form
+
+  const prenom = useWatch({ control, name: 'prenom' })
+  const nom = useWatch({ control, name: 'nom' })
+
+  useEffect(() => {
+    const generated = generateIdentifiantFromName(prenom ?? '', nom ?? '')
+    setValue('identifiant', generated, { shouldValidate: Boolean(generated) })
+  }, [nom, prenom, setValue])
 
   return (
     <div className="space-y-6">
       <FormSection
         title="Identité"
-        description="Informations personnelles de l'utilisateur."
+        description="Informations personnelles et identifiant de connexion."
       >
         <NameFields
           register={register as UseFormReturn<UtilisateurCommonFormValues>['register']}
           errors={errors}
         />
+        <div className="space-y-1.5">
+          <Label htmlFor="edit-identifiant">Identifiant</Label>
+          <Input
+            id="edit-identifiant"
+            placeholder="ex. cdossou"
+            hasError={Boolean(errors.identifiant)}
+            {...register('identifiant')}
+          />
+          {errors.identifiant ? (
+            <p className="text-xs text-statut-rejetee">{errors.identifiant.message}</p>
+          ) : null}
+        </div>
       </FormSection>
 
       <FormSection
@@ -812,70 +865,5 @@ function DetailItem({
       </dt>
       <dd className="mt-0.5 text-sm font-medium text-cnss-900">{value}</dd>
     </div>
-  )
-}
-
-function CreatedUserDialog({
-  state,
-  onClose,
-  onDownload,
-  isDownloading,
-}: {
-  state: CreatedUserState
-  onClose: () => void
-  onDownload: () => void
-  isDownloading: boolean
-}) {
-  return (
-    <>
-      <button
-        type="button"
-        className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[1px]"
-        aria-label="Fermer"
-        onClick={onClose}
-      />
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-slate-200 bg-white p-6 shadow-2xl"
-      >
-        <h2 className="font-display text-lg font-semibold text-cnss-900">
-          Utilisateur créé
-        </h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Le mot de passe temporaire ci-dessous ne sera plus affiché. Communiquez-le
-          de manière sécurisée à l&apos;utilisateur (RG-19).
-        </p>
-
-        <dl className="mt-4 space-y-2 rounded-lg bg-cnss-50 p-4 text-sm">
-          <div>
-            <dt className="text-slate-500">Identifiant</dt>
-            <dd className="font-medium text-cnss-900">
-              {state.utilisateur.identifiant}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Mot de passe temporaire</dt>
-            <dd className="font-mono font-medium text-cnss-900">
-              {state.motDePasseTemporaire}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-slate-500">Créé le</dt>
-            <dd className="font-medium text-cnss-900">
-              {formatDate(state.utilisateur.dtCreation)}
-            </dd>
-          </div>
-        </dl>
-
-        <div className="mt-6 flex justify-end gap-2">
-          <Button variant="outline" isLoading={isDownloading} onClick={onDownload}>
-            <Download className="size-4" aria-hidden="true" />
-            Télécharger Word
-          </Button>
-          <Button onClick={onClose}>J&apos;ai noté le mot de passe</Button>
-        </div>
-      </div>
-    </>
   )
 }

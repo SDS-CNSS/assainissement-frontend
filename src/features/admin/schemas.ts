@@ -50,6 +50,14 @@ export type UtilisateurCreateFormValues = z.infer<
 export const utilisateurEditSchema = z.object({
   nom: z.string().min(1, 'Le nom est obligatoire.').max(100),
   prenom: z.string().min(1, 'Le prénom est obligatoire.').max(100),
+  identifiant: z
+    .string()
+    .min(1, 'L\'identifiant est obligatoire.')
+    .max(50)
+    .regex(
+      /^[a-zA-Z0-9._-]+$/,
+      'L\'identifiant ne peut contenir que des lettres, chiffres, points, tirets ou underscores.',
+    ),
   role: roleEnum,
   moduleAffecte: moduleAffecteEnum,
   directionId: z.string().min(1, 'Veuillez sélectionner une direction.'),

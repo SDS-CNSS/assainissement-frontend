@@ -59,6 +59,14 @@ export function AgentN1DashboardPage() {
     [moduleTab, page],
   )
 
+  const tableModuleFilter: ModuleFilterTab | undefined = showModuleTabs
+    ? moduleTab
+    : user?.moduleAffecte === 'TRAVAILLEUR'
+      ? 'TRAVAILLEUR'
+      : user?.moduleAffecte === 'EMPLOYEUR'
+        ? 'EMPLOYEUR'
+        : undefined
+
   const demandesQuery = useDemandesList(listParams, { refetchInterval: 30_000 })
   const validerN1 = useValiderN1()
   const rejeterN1 = useRejeterN1()
@@ -173,6 +181,7 @@ export function AgentN1DashboardPage() {
               demandes={demandesQuery.data?.demandes ?? []}
               isActionPending={isActionPending}
               compactStatut
+              moduleFilter={tableModuleFilter}
               onViewDetail={(demande) =>
                 navigate(`/backoffice/demandes/${demande.id}`)
               }

@@ -59,6 +59,14 @@ export function SuperviseurDashboardPage() {
     [moduleTab, page],
   )
 
+  const tableModuleFilter: ModuleFilterTab | undefined = showModuleTabs
+    ? moduleTab
+    : user?.moduleAffecte === 'TRAVAILLEUR'
+      ? 'TRAVAILLEUR'
+      : user?.moduleAffecte === 'EMPLOYEUR'
+        ? 'EMPLOYEUR'
+        : undefined
+
   const demandesQuery = useDemandesList(listParams)
   const validerSuperviseur = useValiderSuperviseur()
   const rejeterSuperviseur = useRejeterSuperviseur()
@@ -173,6 +181,7 @@ export function SuperviseurDashboardPage() {
               demandes={demandesQuery.data?.demandes ?? []}
               isActionPending={isActionPending}
               compactStatut
+              moduleFilter={tableModuleFilter}
               onViewDetail={(demande) =>
                 navigate(`/backoffice/demandes/${demande.id}`)
               }

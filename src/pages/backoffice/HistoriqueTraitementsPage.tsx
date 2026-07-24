@@ -44,6 +44,14 @@ export function HistoriqueTraitementsPage() {
     [moduleTab, page],
   )
 
+  const tableModuleFilter: ModuleFilterTab | undefined = showModuleTabs
+    ? moduleTab
+    : user?.moduleAffecte === 'TRAVAILLEUR'
+      ? 'TRAVAILLEUR'
+      : user?.moduleAffecte === 'EMPLOYEUR'
+        ? 'EMPLOYEUR'
+        : undefined
+
   const traitementsQuery = useMesTraitements(listParams)
 
   const listError = traitementsQuery.isError
@@ -111,6 +119,7 @@ export function HistoriqueTraitementsPage() {
             <DemandeTable
               demandes={traitementsQuery.data?.demandes ?? []}
               readonly
+              moduleFilter={tableModuleFilter}
               emptyMessage="Vous n'avez encore validé ni rejeté aucune demande."
               onViewDetail={(demande) =>
                 navigate(

@@ -16,6 +16,8 @@ export interface DemandeListItem {
   ifu?: string
   raisonSocialeDGI?: string
   npi?: string
+  nomAnip?: string
+  prenomAnip?: string
 }
 
 export interface DemandeListResponse {

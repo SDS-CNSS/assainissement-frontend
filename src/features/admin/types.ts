@@ -42,6 +42,7 @@ export interface CreateUtilisateurPayload {
 export interface UpdateUtilisateurPayload {
   nom: string
   prenom: string
+  identifiant: string
   role: UserRole
   moduleAffecte: ModuleAffecte
   directionId: string

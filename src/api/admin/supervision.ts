@@ -17,6 +17,8 @@ interface DemandeListItemRaw {
   ifu?: string
   raisonSocialeDGI?: string
   npi?: string
+  nomAnip?: string
+  prenomAnip?: string
 }
 
 interface SupervisionRawResponse {
@@ -39,6 +41,8 @@ function mapDemandeItem(raw: DemandeListItemRaw): DemandeListItem {
     ifu: raw.ifu,
     raisonSocialeDGI: raw.raisonSocialeDGI,
     npi: raw.npi,
+    nomAnip: raw.nomAnip,
+    prenomAnip: raw.prenomAnip,
   }
 }
 

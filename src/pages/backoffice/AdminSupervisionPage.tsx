@@ -176,6 +176,7 @@ export function AdminSupervisionPage() {
             <DemandeTable
               demandes={supervisionQuery.data?.demandes ?? []}
               readonly
+              moduleFilter={moduleTab}
               onViewDetail={(demande) =>
                 navigate(`/backoffice/demandes/${demande.id}`)
               }

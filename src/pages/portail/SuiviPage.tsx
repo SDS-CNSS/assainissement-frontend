@@ -204,7 +204,7 @@ export function SuiviPage() {
               Aucune recherche en cours
             </p>
             <p className="mx-auto mt-1.5 max-w-sm text-sm text-slate-600">
-              Votre numéro figure sur l&apos;e-mail de confirmation envoyé après
+              Votre numéro figure sur le courriel de confirmation envoyé après
               le dépôt de la demande.
             </p>
           </div>
@@ -288,7 +288,7 @@ export function SuiviPage() {
                     />
                     <InfoTile
                       icon={Mail}
-                      label="E-mail"
+                      label="Courriel"
                       value={result.emailMasque}
                     />
                     <InfoTile

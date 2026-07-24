@@ -9,12 +9,18 @@ import {
 } from 'lucide-react'
 import { BadgeStatutDemande } from '@/components/domain/BadgeStatutDemande'
 import { Button } from '@/components/ui'
-import type { DemandeListItem } from '@/features/validation/types'
+import type {
+  DemandeListItem,
+  ModuleFilterTab,
+} from '@/features/validation/types'
 import { cn } from '@/lib/cn'
 
-type SortColumn = 'numeroDemande' | 'numeroCNSS' | 'ifu' | 'statut'
+type SortColumn = 'numeroDemande' | 'numeroCNSS' | 'externe' | 'statut'
 
 type SortDirection = 'asc' | 'desc'
+
+/** Colonne référentiel externe : IFU (employeur) ou ANIP (travailleur). */
+type ExterneColumnMode = 'ifu' | 'anip' | 'mixed'
 
 export interface DemandeTableProps {
   demandes: DemandeListItem[]
@@ -27,6 +33,11 @@ export interface DemandeTableProps {
   /** Libellé statut court « En attente » (files Agent / Superviseur). */
   compactStatut?: boolean
   emptyMessage?: string
+  /**
+   * Filtre module de la file : force l’en-tête IFU ou ANIP.
+   * Sans filtre, déduit du contenu de la page (utile si moduleAffecte unique).
+   */
+  moduleFilter?: ModuleFilterTab
 }
 
 function SortIcon({
@@ -52,6 +63,51 @@ function compareText(a: string | undefined, b: string | undefined): number {
   return (a ?? '').localeCompare(b ?? '', 'fr', { sensitivity: 'base' })
 }
 
+function formatIdentiteAnip(demande: DemandeListItem): string | undefined {
+  const parts = [demande.prenomAnip, demande.nomAnip].filter(
+    (part): part is string => Boolean(part && part.trim() !== ''),
+  )
+  return parts.length > 0 ? parts.join(' ') : undefined
+}
+
+function isTravailleurRow(demande: DemandeListItem): boolean {
+  return demande.module === 'TRAVAILLEUR'
+}
+
+function externePrimary(demande: DemandeListItem): string | undefined {
+  return isTravailleurRow(demande) ? demande.npi : demande.ifu
+}
+
+function externeSecondary(demande: DemandeListItem): string | undefined {
+  return isTravailleurRow(demande)
+    ? formatIdentiteAnip(demande)
+    : demande.raisonSocialeDGI
+}
+
+function resolveExterneColumnMode(
+  moduleFilter: ModuleFilterTab | undefined,
+  demandes: DemandeListItem[],
+): ExterneColumnMode {
+  if (moduleFilter === 'EMPLOYEUR') return 'ifu'
+  if (moduleFilter === 'TRAVAILLEUR') return 'anip'
+
+  const modules = new Set(demandes.map((d) => d.module))
+  if (modules.size === 1 && modules.has('TRAVAILLEUR')) return 'anip'
+  if (modules.size === 1 && modules.has('EMPLOYEUR')) return 'ifu'
+  return 'mixed'
+}
+
+function externeHeaderLabel(mode: ExterneColumnMode): string {
+  switch (mode) {
+    case 'anip':
+      return 'ANIP'
+    case 'ifu':
+      return 'IFU'
+    case 'mixed':
+      return 'IFU / ANIP'
+  }
+}
+
 function compareValues(
   a: DemandeListItem,
   b: DemandeListItem,
@@ -62,8 +118,8 @@ function compareValues(
       return a.numeroDemande.localeCompare(b.numeroDemande)
     case 'numeroCNSS':
       return a.numeroCNSS.localeCompare(b.numeroCNSS)
-    case 'ifu':
-      return compareText(a.ifu, b.ifu)
+    case 'externe':
+      return compareText(externePrimary(a), externePrimary(b))
     case 'statut':
       return a.statut.localeCompare(b.statut)
     default:
@@ -107,10 +163,16 @@ export function DemandeTable({
   readonly = false,
   compactStatut = false,
   emptyMessage = 'Aucune demande dans cette file d\'attente.',
+  moduleFilter,
 }: DemandeTableProps) {
   const showValidationActions = !readonly && onValider && onRejeter
   const [sortColumn, setSortColumn] = useState<SortColumn>('numeroDemande')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+
+  const externeMode = useMemo(
+    () => resolveExterneColumnMode(moduleFilter, demandes),
+    [moduleFilter, demandes],
+  )
 
   const sortedDemandes = useMemo(() => {
     const copy = [...demandes]
@@ -178,11 +240,11 @@ export function DemandeTable({
               <button
                 type="button"
                 className={headerButtonClass}
-                onClick={() => toggleSort('ifu')}
+                onClick={() => toggleSort('externe')}
               >
-                IFU
+                {externeHeaderLabel(externeMode)}
                 <SortIcon
-                  column="ifu"
+                  column="externe"
                   sortColumn={sortColumn}
                   sortDirection={sortDirection}
                 />
@@ -227,8 +289,8 @@ export function DemandeTable({
               </td>
               <td className="px-4 py-3">
                 <StackedCell
-                  primary={demande.ifu}
-                  secondary={demande.raisonSocialeDGI}
+                  primary={externePrimary(demande)}
+                  secondary={externeSecondary(demande)}
                 />
               </td>
               <td className="px-4 py-3">
