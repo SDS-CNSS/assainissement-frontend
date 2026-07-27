@@ -310,7 +310,7 @@ export function AdminUtilisateursPage() {
           </h2>
           <p className="mt-1 text-slate-600">
             Administrez les comptes agents CNSS, leurs rôles, directions et accès
-            au back office SIGESS.
+            au back office d'assainissement.
           </p>
         </div>
         <Button onClick={openCreate} disabled={directions.length === 0}>
@@ -481,7 +481,7 @@ export function AdminUtilisateursPage() {
           <SideDrawer
             open={createOpen}
             title="Utilisateur créé"
-            description="Téléchargez le document d'informations de connexion pour le transmettre de manière sécurisée à l'utilisateur (RG-19)."
+            description="Téléchargez le document d'informations de connexion pour le transmettre de manière sécurisée à l'utilisateur."
             onClose={closeCreate}
             footer={
               <div className="flex justify-end gap-3">

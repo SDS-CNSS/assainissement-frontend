@@ -5,6 +5,7 @@ import { Button } from '@/components/ui'
 export interface ConfirmDialogProps {
   open: boolean
   title: string
+  buttonType?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success'
   message: string
   confirmLabel?: string
   cancelLabel?: string
@@ -20,6 +21,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirmer',
   cancelLabel = 'Annuler',
   isLoading = false,
+  buttonType= 'primary',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -44,7 +46,7 @@ export function ConfirmDialog({
     <>
       <button
         type="button"
-        className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[1px]"
+        className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[1px] h-full"
         aria-label="Annuler la confirmation"
         onClick={() => {
           if (!isLoading) onCancel()
@@ -95,7 +97,7 @@ export function ConfirmDialog({
           </Button>
           <Button
             type="button"
-            variant="primary"
+            variant={buttonType}
             isLoading={isLoading}
             onClick={onConfirm}
           >

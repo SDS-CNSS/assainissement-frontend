@@ -71,7 +71,7 @@ export function RejetModal({
     <>
       <button
         type="button"
-        className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[1px]"
+        className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[1px] h-full"
         aria-label="Fermer la fenêtre de rejet"
         onClick={() => {
           if (!isLoading) onClose()

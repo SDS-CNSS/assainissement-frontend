@@ -139,13 +139,10 @@ export function AdminConsolidationPage() {
       </div>
 
       <Alert variant="warning">
-        <span className="inline-flex items-start gap-2">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>
+          <span className="inline-flex h-full items-center pt-1">
             Opération irréversible : les lignes consolidées sont figées. Les
             IFU/NPI validés sont écrits dans le référentiel.
           </span>
-        </span>
       </Alert>
 
       <Card>

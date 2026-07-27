@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, type ClipboardEvent, type DragEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Building2,
   CalendarDays,
@@ -10,7 +10,7 @@ import {
   KeyRound,
   Layers,
   Lock,
-} from 'lucide-react'
+} from "lucide-react";
 import {
   Alert,
   Badge,
@@ -23,24 +23,21 @@ import {
   Input,
   Label,
   Skeleton,
-} from '@/components/ui'
-import { getApiErrorMessage } from '@/api/types'
+} from "@/components/ui";
+import { getApiErrorMessage } from "@/api/types";
 import {
   FlashFeedback,
   useFlashFeedback,
-} from '@/components/domain/FlashFeedback'
-import {
-  MODULE_AFFECTE_LABELS,
-  ROLE_LABELS,
-} from '@/features/admin/types'
+} from "@/components/domain/FlashFeedback";
+import { MODULE_AFFECTE_LABELS, ROLE_LABELS } from "@/features/admin/types";
 import {
   changePasswordSchema,
   type ChangePasswordFormValues,
-} from '@/features/auth/schemas'
-import type { UserProfile } from '@/api/auth'
-import { useProfile, useUpdatePassword } from '@/features/auth/hooks'
-import { formatDate } from '@/lib/formatDate'
-import { cn } from '@/lib/cn'
+} from "@/features/auth/schemas";
+import type { UserProfile } from "@/api/auth";
+import { useProfile, useUpdatePassword } from "@/features/auth/hooks";
+import { formatDate } from "@/lib/formatDate";
+import { cn } from "@/lib/cn";
 
 function PasswordField({
   id,
@@ -51,16 +48,24 @@ function PasswordField({
   autoComplete,
   registration,
 }: {
-  id: string
-  label: string
-  show: boolean
-  onToggle: () => void
-  error?: string
-  autoComplete: string
+  id: string;
+  label: string;
+  show: boolean;
+  onToggle: () => void;
+  error?: string;
+  autoComplete: string;
   registration: ReturnType<
-    ReturnType<typeof useForm<ChangePasswordFormValues>>['register']
-  >
+    ReturnType<typeof useForm<ChangePasswordFormValues>>["register"]
+  >;
 }) {
+  const blockPasswordClipboard = (event: ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+  };
+
+  const blockPasswordDrop = (event: DragEvent<HTMLInputElement>) => {
+    event.preventDefault();
+  };
+
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id} required>
@@ -69,17 +74,27 @@ function PasswordField({
       <div className="relative">
         <Input
           id={id}
-          type={show ? 'text' : 'password'}
+          type={show ? "text" : "password"}
           autoComplete={autoComplete}
           className="pr-11"
           hasError={Boolean(error)}
           {...registration}
+          onPaste={blockPasswordClipboard}
+          onCopy={blockPasswordClipboard}
+          onCut={blockPasswordClipboard}
+          onDrop={blockPasswordDrop}
+          onDragOver={(event) => event.preventDefault()}
+          onContextMenu={(event) => event.preventDefault()}
         />
         <button
           type="button"
           onClick={onToggle}
           className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-          aria-label={show ? `Masquer ${label.toLowerCase()}` : `Afficher ${label.toLowerCase()}`}
+          aria-label={
+            show
+              ? `Masquer ${label.toLowerCase()}`
+              : `Afficher ${label.toLowerCase()}`
+          }
         >
           {show ? (
             <EyeOff className="size-4" aria-hidden="true" />
@@ -94,11 +109,12 @@ function PasswordField({
         </p>
       ) : null}
     </div>
-  )
+  );
 }
 
 function ProfileHero({ profile }: { profile: UserProfile }) {
-  const initials = `${profile.prenom.charAt(0)}${profile.nom.charAt(0)}`.toUpperCase()
+  const initials =
+    `${profile.prenom.charAt(0)}${profile.nom.charAt(0)}`.toUpperCase();
 
   return (
     <Card className="overflow-hidden border-cnss-100">
@@ -116,30 +132,29 @@ function ProfileHero({ profile }: { profile: UserProfile }) {
           <div className="flex items-center gap-4">
             <span
               className={cn(
-                'flex size-16 shrink-0 items-center justify-center rounded-2xl',
-                'border border-white/20 bg-white/10 font-display text-xl font-bold backdrop-blur-sm',
+                "flex size-16 shrink-0 items-center justify-center rounded-2xl",
+                "border border-white/20 bg-white/10 font-display text-xl font-bold backdrop-blur-sm",
               )}
               aria-hidden="true"
             >
               {initials}
             </span>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-cnss-200">
-                Compte SIGESS
-              </p>
               <h2 className="font-display text-2xl font-semibold text-white">
                 {profile.prenom} {profile.nom}
               </h2>
-              <p className="mt-1 text-sm text-cnss-100">@{profile.identifiant}</p>
+              <p className="mt-1 text-sm text-cnss-100">
+                @{profile.identifiant}
+              </p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Badge variant="info" className="border-white/20 bg-white/15 text-white">
+            <Badge
+              variant="info"
+              className="border-white/20 bg-white/15 text-white"
+            >
               {ROLE_LABELS[profile.role]}
-            </Badge>
-            <Badge variant="outline" className="border-white/25 bg-white/10 text-white">
-              Niveau N{profile.niveau}
             </Badge>
           </div>
         </div>
@@ -147,7 +162,10 @@ function ProfileHero({ profile }: { profile: UserProfile }) {
 
       <CardContent className="grid gap-4 border-t border-cnss-100 bg-cnss-50/40 p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm">
-          <Layers className="size-4 shrink-0 text-cnss-600" aria-hidden="true" />
+          <Layers
+            className="size-4 shrink-0 text-cnss-600"
+            aria-hidden="true"
+          />
           <div>
             <p className="text-xs text-slate-500">Module affecté</p>
             <p className="text-sm font-medium text-cnss-900">
@@ -156,7 +174,10 @@ function ProfileHero({ profile }: { profile: UserProfile }) {
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm">
-          <Building2 className="size-4 shrink-0 text-cnss-600" aria-hidden="true" />
+          <Building2
+            className="size-4 shrink-0 text-cnss-600"
+            aria-hidden="true"
+          />
           <div className="min-w-0">
             <p className="text-xs text-slate-500">Direction</p>
             <p className="truncate text-sm font-medium text-cnss-900">
@@ -165,18 +186,24 @@ function ProfileHero({ profile }: { profile: UserProfile }) {
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm sm:col-span-2 lg:col-span-1">
-          <Clock3 className="size-4 shrink-0 text-cnss-600" aria-hidden="true" />
+          <Clock3
+            className="size-4 shrink-0 text-cnss-600"
+            aria-hidden="true"
+          />
           <div>
             <p className="text-xs text-slate-500">Dernière connexion</p>
             <p className="text-sm font-medium text-cnss-900">
               {profile.dtLastLogin
                 ? formatDate(profile.dtLastLogin)
-                : 'Aucune connexion enregistrée'}
+                : "Aucune connexion enregistrée"}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm sm:col-span-2 lg:col-span-3">
-          <CalendarDays className="size-4 shrink-0 text-cnss-600" aria-hidden="true" />
+          <CalendarDays
+            className="size-4 shrink-0 text-cnss-600"
+            aria-hidden="true"
+          />
           <div>
             <p className="text-xs text-slate-500">Compte créé le</p>
             <p className="text-sm font-medium text-cnss-900">
@@ -186,19 +213,19 @@ function ProfileHero({ profile }: { profile: UserProfile }) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function ChangePasswordForm() {
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {
     feedback: successFeedback,
     setFeedback: setSuccessFeedback,
     clearFeedback: clearSuccessFeedback,
-  } = useFlashFeedback()
-  const updatePassword = useUpdatePassword()
+  } = useFlashFeedback();
+  const updatePassword = useUpdatePassword();
 
   const {
     register,
@@ -208,21 +235,21 @@ function ChangePasswordForm() {
   } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
-      ancienMotDePasse: '',
-      nouveauMotDePasse: '',
-      confirmationMotDePasse: '',
+      ancienMotDePasse: "",
+      nouveauMotDePasse: "",
+      confirmationMotDePasse: "",
     },
-  })
+  });
 
   const apiError = updatePassword.isError
     ? getApiErrorMessage(
         updatePassword.error,
-        'Impossible de modifier le mot de passe. Veuillez réessayer.',
+        "Impossible de modifier le mot de passe. Veuillez réessayer.",
       )
-    : null
+    : null;
 
   const onSubmit = (values: ChangePasswordFormValues) => {
-    clearSuccessFeedback()
+    clearSuccessFeedback();
     updatePassword.mutate(
       {
         motDePasseActuel: values.ancienMotDePasse,
@@ -231,15 +258,15 @@ function ChangePasswordForm() {
       },
       {
         onSuccess: () => {
-          reset()
+          reset();
           setSuccessFeedback({
-            variant: 'success',
-            message: 'Votre mot de passe a été mis à jour avec succès.',
-          })
+            variant: "success",
+            message: "Votre mot de passe a été mis à jour avec succès.",
+          });
         },
       },
-    )
-  }
+    );
+  };
 
   return (
     <Card className="h-full">
@@ -251,15 +278,16 @@ function ChangePasswordForm() {
           <div>
             <CardTitle>Sécurité du compte</CardTitle>
             <CardDescription>
-              Modifiez votre mot de passe pour protéger l&apos;accès à votre espace.
+              Modifiez votre mot de passe pour protéger l&apos;accès à votre
+              espace.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-5 pt-6">
         <Alert variant="info">
-          Minimum 12 caractères et au moins 3 types parmi : majuscules, minuscules,
-          chiffres et caractères spéciaux.
+          Minimum 12 caractères et au moins 3 types parmi : majuscules,
+          minuscules, chiffres et caractères spéciaux.
         </Alert>
 
         <FlashFeedback
@@ -269,7 +297,11 @@ function ChangePasswordForm() {
 
         {apiError ? <Alert variant="error">{apiError}</Alert> : null}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+          noValidate
+        >
           <PasswordField
             id="ancienMotDePasse"
             label="Mot de passe actuel"
@@ -277,7 +309,7 @@ function ChangePasswordForm() {
             onToggle={() => setShowCurrentPassword((value) => !value)}
             error={errors.ancienMotDePasse?.message}
             autoComplete="current-password"
-            registration={register('ancienMotDePasse')}
+            registration={register("ancienMotDePasse")}
           />
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -288,7 +320,7 @@ function ChangePasswordForm() {
               onToggle={() => setShowNewPassword((value) => !value)}
               error={errors.nouveauMotDePasse?.message}
               autoComplete="new-password"
-              registration={register('nouveauMotDePasse')}
+              registration={register("nouveauMotDePasse")}
             />
             <PasswordField
               id="confirmationMotDePasse"
@@ -297,7 +329,7 @@ function ChangePasswordForm() {
               onToggle={() => setShowConfirmPassword((value) => !value)}
               error={errors.confirmationMotDePasse?.message}
               autoComplete="new-password"
-              registration={register('confirmationMotDePasse')}
+              registration={register("confirmationMotDePasse")}
             />
           </div>
 
@@ -310,11 +342,11 @@ function ChangePasswordForm() {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function ProfilPage() {
-  const profileQuery = useProfile()
+  const profileQuery = useProfile();
 
   if (profileQuery.isLoading) {
     return (
@@ -322,7 +354,7 @@ export function ProfilPage() {
         <Skeleton className="h-52 w-full rounded-xl" />
         <Skeleton className="h-96 w-full rounded-xl" />
       </div>
-    )
+    );
   }
 
   if (profileQuery.isError || !profileQuery.data) {
@@ -330,13 +362,13 @@ export function ProfilPage() {
       <Alert variant="error">
         {getApiErrorMessage(
           profileQuery.error,
-          'Impossible de charger votre profil. Veuillez réessayer.',
+          "Impossible de charger votre profil. Veuillez réessayer.",
         )}
       </Alert>
-    )
+    );
   }
 
-  const profile = profileQuery.data
+  const profile = profileQuery.data;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -353,5 +385,5 @@ export function ProfilPage() {
 
       <ChangePasswordForm />
     </div>
-  )
+  );
 }

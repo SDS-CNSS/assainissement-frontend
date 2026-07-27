@@ -44,7 +44,7 @@ export function PortailLayout() {
             <img
               src={cnssLogo}
               alt="Logo CNSS"
-              className="size-9 shrink-0 rounded-xl object-contain sm:size-10"
+              className="size-9 shrink-0 object-contain sm:size-10"
             />
             <div className="min-w-0 text-left">
               <p className="font-display text-sm font-semibold text-cnss-900 truncate">
@@ -146,13 +146,13 @@ export function PortailLayout() {
               <img
                 src={cnssLogo}
                 alt="Logo CNSS"
-                className="size-10 shrink-0 rounded-xl object-contain"
+                className="size-10 shrink-0 object-contain"
               />
               <div className="min-w-0 text-left">
                 <p className="font-display text-sm font-semibold text-cnss-900">
                   CNSS — Bénin
                 </p>
-                <p className="mt-0.5 max-w-xs text-xs leading-relaxed text-slate-500 sm:text-sm">
+                <p className="mt-0.5 max-w-sm text-xs leading-relaxed text-slate-500 sm:text-sm">
                   Portail public de mise à jour des identifiants IFU et NPI.
                 </p>
               </div>

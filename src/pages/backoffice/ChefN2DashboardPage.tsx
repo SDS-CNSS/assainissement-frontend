@@ -124,7 +124,7 @@ export function ChefN2DashboardPage() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-semibold text-cnss-900">
-          Validations
+          File d'attente
         </h2>
         <p className="mt-1 text-slate-600">
           Validation et rejet des demandes en attente de traitement.

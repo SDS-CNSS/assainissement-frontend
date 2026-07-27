@@ -24,7 +24,7 @@ import { cn } from '@/lib/cn'
 const ADMIN_SECTIONS = [
   {
     label: 'Utilisateurs',
-    description: 'CRUD, déverrouillage et identifiants',
+    description: 'Gestion des utilisateurs',
     to: '/backoffice/admin/utilisateurs',
     icon: Users,
   },

@@ -50,7 +50,7 @@ export function SideDrawer({
     <>
       <button
         type="button"
-        className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-[2px] animate-backdrop-in"
+        className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-[2px] animate-backdrop-in  h-full"
         aria-label="Fermer le panneau"
         onClick={() => {
           if (!isLoading) onClose()

@@ -75,9 +75,8 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
 
               <span
                 className={cn(
-                  'max-w-full truncate text-center text-[10px] font-medium leading-tight sm:text-xs',
+                  'max-w-full truncate text-center text-[10px] font-medium leading-tight sm:text-xs sm:block hidden',
                   // Mobile : libellé de l’étape active seulement (parcours NPI à 6 étapes)
-                  isActive ? 'block' : 'hidden sm:block',
                   isActive
                     ? 'text-cnss-800'
                     : isDone

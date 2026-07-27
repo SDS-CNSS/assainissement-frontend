@@ -308,7 +308,6 @@ export function DemandeTable({
                     aria-label={`Voir le détail de ${demande.numeroDemande}`}
                   >
                     <Eye className="size-4" aria-hidden="true" />
-                    Détail
                   </Button>
                   {showValidationActions ? (
                     <>

@@ -247,7 +247,7 @@ export function DemandeDetailPage() {
             Demande
           </h2>
           <p className="mt-0.5 text-sm text-slate-500">
-            Consultez le détail et l&apos;historique du cycle de vie
+            Consultez le détail et l&apos;historique de la demande
           </p>
         </div>
 
