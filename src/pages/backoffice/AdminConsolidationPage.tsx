@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangle, Download, Layers } from 'lucide-react'
+import { Download, Layers } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
@@ -18,11 +18,11 @@ import {
 import { getApiErrorMessage } from '@/api/types'
 import {
   CONFLICT_MOTIF_LABELS,
+  downloadConsolidationFiles,
   fetchConsolidationPreview,
   runConsolidationExport,
 } from '@/api/admin/consolidation'
 import { listAuditLogs } from '@/api/admin/audit'
-import { downloadBlob } from '@/lib/downloadBlob'
 import { cn } from '@/lib/cn'
 
 const previewKey = ['admin', 'consolidation-preview'] as const
@@ -49,14 +49,19 @@ export function AdminConsolidationPage() {
   const consolidateMutation = useMutation({
     mutationFn: runConsolidationExport,
     onSuccess: async (result) => {
-      downloadBlob(result.blob, result.filename)
+      downloadConsolidationFiles(result.files)
       setConfirmOpen(false)
+      const fileCount = result.files.length
+      const fileLabel =
+        fileCount > 1
+          ? `${fileCount} fichiers Excel téléchargés (employeurs / travailleurs).`
+          : 'Fichier Excel téléchargé.'
       setFeedback({
         variant: 'success',
         message:
           result.conflictCount > 0
-            ? `${result.count} mise(s) à jour consolidée(s). ${result.conflictCount} conflit(s) signalé(s) dans l'Excel (non appliqués).`
-            : `${result.count} mise(s) à jour consolidée(s). Fichier Excel téléchargé.`,
+            ? `${result.count} mise(s) à jour consolidée(s). ${fileLabel} ${result.conflictCount} conflit(s) non appliqué(s) (visibles ci-dessous).`
+            : `${result.count} mise(s) à jour consolidée(s). ${fileLabel}`,
       })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: previewKey }),
@@ -99,7 +104,8 @@ export function AdminConsolidationPage() {
         </h2>
         <p className="mt-1 text-slate-600">
           Appliquer les IFU / NPI des demandes validées définitivement dans le
-          référentiel CNSS, puis exporter le lot.
+          référentiel CNSS, puis exporter un Excel Employeurs et un Excel
+          Travailleurs.
         </p>
       </div>
 
@@ -156,7 +162,7 @@ export function AdminConsolidationPage() {
             onClick={() => setConfirmOpen(true)}
           >
             <Download className="size-4" aria-hidden />
-            Consolider et télécharger l&apos;Excel
+            Consolider et télécharger les Excel
           </Button>
         </CardHeader>
         <CardContent className="text-sm text-slate-600">
@@ -164,7 +170,7 @@ export function AdminConsolidationPage() {
             ? conflictCount > 0
               ? 'Aucune ligne applicable pour le moment. Créez les fiches référentiel manquantes, puis réessayez.'
               : 'Aucune demande validée en attente de consolidation.'
-            : `${eligibleCount} demande(s) seront appliquée(s) au référentiel.`}
+            : `${eligibleCount} demande(s) seront appliquée(s) au référentiel (un fichier par module).`}
         </CardContent>
       </Card>
 
@@ -220,8 +226,7 @@ export function AdminConsolidationPage() {
                 </table>
                 {conflictCount > (preview?.conflicts.length ?? 0) ? (
                   <p className="mt-2 text-xs text-slate-500">
-                    Aperçu limité à {preview?.conflicts.length} conflit(s) — le
-                    détail complet sera dans l&apos;Excel.
+                    Aperçu limité à {preview?.conflicts.length} conflit(s).
                   </p>
                 ) : null}
               </div>
@@ -262,9 +267,9 @@ export function AdminConsolidationPage() {
         title="Confirmer la consolidation"
         message={`Consolider ${eligibleCount} demande(s) validée(s) dans le référentiel ?${
           conflictCount > 0
-            ? ` ${conflictCount} fiche(s) absente(s) seront signalée(s) sans être appliquées.`
+            ? ` ${conflictCount} fiche(s) absente(s) resteront non appliquées (aperçu ci-dessous).`
             : ''
-        } Cette opération est irréversible.`}
+        } Un fichier Excel par module (employeurs / travailleurs) sera téléchargé. Cette opération est irréversible.`}
         confirmLabel="Consolider"
         isLoading={consolidateMutation.isPending}
         onConfirm={() => consolidateMutation.mutate()}
