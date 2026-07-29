@@ -195,6 +195,8 @@ export function AdminUtilisateursPage() {
         nom: values.nom.trim(),
         prenom: values.prenom.trim(),
         identifiant,
+        moduleAffecte:
+          values.role === 'SUPERVISEUR' ? null : values.moduleAffecte ?? null,
       })
       setCredentialsResult(result)
       setCredentialsContext('create')
@@ -245,6 +247,8 @@ export function AdminUtilisateursPage() {
           nom: values.nom.trim(),
           prenom: values.prenom.trim(),
           identifiant: values.identifiant.trim(),
+          moduleAffecte:
+            values.role === 'SUPERVISEUR' ? null : values.moduleAffecte ?? null,
         },
       })
       setEditTarget(null)
@@ -742,6 +746,12 @@ function CreateFormFields({
       >
         <RoleModuleDirectionFields
           register={register as UseFormReturn<UtilisateurCommonFormValues>['register']}
+          control={
+            control as unknown as UseFormReturn<UtilisateurCommonFormValues>['control']
+          }
+          setValue={
+            setValue as unknown as UseFormReturn<UtilisateurCommonFormValues>['setValue']
+          }
           errors={errors}
           directions={directions}
         />
@@ -763,14 +773,6 @@ function EditFormFields({
     setValue,
     formState: { errors },
   } = form
-
-  const prenom = useWatch({ control, name: 'prenom' })
-  const nom = useWatch({ control, name: 'nom' })
-
-  useEffect(() => {
-    const generated = generateIdentifiantFromName(prenom ?? '', nom ?? '')
-    setValue('identifiant', generated, { shouldValidate: Boolean(generated) })
-  }, [nom, prenom, setValue])
 
   return (
     <div className="space-y-6">
@@ -802,6 +804,12 @@ function EditFormFields({
       >
         <RoleModuleDirectionFields
           register={register as UseFormReturn<UtilisateurCommonFormValues>['register']}
+          control={
+            control as unknown as UseFormReturn<UtilisateurCommonFormValues>['control']
+          }
+          setValue={
+            setValue as unknown as UseFormReturn<UtilisateurCommonFormValues>['setValue']
+          }
           errors={errors}
           directions={directions}
         />
@@ -839,13 +847,34 @@ function NameFields({
 
 function RoleModuleDirectionFields({
   register,
+  control,
+  setValue,
   errors,
   directions,
 }: {
   register: UseFormReturn<UtilisateurCommonFormValues>['register']
+  control: UseFormReturn<UtilisateurCommonFormValues>['control']
+  setValue: UseFormReturn<UtilisateurCommonFormValues>['setValue']
   errors: UseFormReturn<UtilisateurCommonFormValues>['formState']['errors']
   directions: Direction[]
 }) {
+  const role = useWatch({ control, name: 'role' })
+  const moduleAffecte = useWatch({ control, name: 'moduleAffecte' })
+  const isSuperviseur = role === 'SUPERVISEUR'
+
+  useEffect(() => {
+    if (isSuperviseur) {
+      if (moduleAffecte != null) {
+        setValue('moduleAffecte', null, { shouldValidate: true })
+      }
+      return
+    }
+
+    if (!moduleAffecte) {
+      setValue('moduleAffecte', 'EMPLOYEUR', { shouldValidate: true })
+    }
+  }, [isSuperviseur, moduleAffecte, setValue])
+
   return (
     <>
       <SelectField
@@ -861,18 +890,25 @@ function RoleModuleDirectionFields({
         <option value="ADMINISTRATEUR">Administrateur</option>
       </SelectField>
 
-      <SelectField
-        id="moduleAffecte"
-        label="Module affecté"
-        error={errors.moduleAffecte?.message}
-        {...register('moduleAffecte')}
-      >
-        {Object.entries(MODULE_AFFECTE_LABELS).map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </SelectField>
+      {!isSuperviseur ? (
+        <SelectField
+          id="moduleAffecte"
+          label="Module affecté"
+          error={errors.moduleAffecte?.message}
+          {...register('moduleAffecte')}
+        >
+          {Object.entries(MODULE_AFFECTE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </SelectField>
+      ) : (
+        <p className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          Le superviseur n&apos;est pas associé à un module : accès au tableau de
+          bord uniquement.
+        </p>
+      )}
 
       <SelectField
         id="directionId"
@@ -932,7 +968,11 @@ function UtilisateurDetailDrawer({
           <DetailItem label="Rôle" value={ROLE_LABELS[utilisateur.role]} />
           <DetailItem
             label="Module affecté"
-            value={MODULE_AFFECTE_LABELS[utilisateur.moduleAffecte]}
+            value={
+              utilisateur.moduleAffecte
+                ? MODULE_AFFECTE_LABELS[utilisateur.moduleAffecte]
+                : '—'
+            }
           />
           <DetailItem
             label="Direction"

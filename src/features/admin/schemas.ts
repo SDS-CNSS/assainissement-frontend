@@ -28,7 +28,7 @@ export const directionFormSchema = z.object({
 
 export type DirectionFormValues = z.infer<typeof directionFormSchema>
 
-export const utilisateurCreateSchema = z.object({
+const utilisateurBaseSchema = z.object({
   nom: z.string().min(1, 'Le nom est obligatoire.').max(100),
   prenom: z.string().min(1, 'Le prénom est obligatoire.').max(100),
   identifiant: z
@@ -40,28 +40,32 @@ export const utilisateurCreateSchema = z.object({
       'L\'identifiant ne peut contenir que des lettres, chiffres, points, tirets ou underscores.',
     ),
   role: roleEnum,
-  moduleAffecte: moduleAffecteEnum,
+  // Superviseur : pas de module métier (tableau de bord uniquement).
+  moduleAffecte: moduleAffecteEnum.optional().nullable(),
   directionId: z.string().min(1, 'Veuillez sélectionner une direction.'),
 })
+
+function refineModuleForRole(
+  data: z.infer<typeof utilisateurBaseSchema>,
+  ctx: z.RefinementCtx,
+) {
+  if (data.role !== 'SUPERVISEUR' && !data.moduleAffecte) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['moduleAffecte'],
+      message: 'Le module affecté est obligatoire.',
+    })
+  }
+}
+
+export const utilisateurCreateSchema =
+  utilisateurBaseSchema.superRefine(refineModuleForRole)
 
 export type UtilisateurCreateFormValues = z.infer<
-  typeof utilisateurCreateSchema
+  typeof utilisateurBaseSchema
 >
 
-export const utilisateurEditSchema = z.object({
-  nom: z.string().min(1, 'Le nom est obligatoire.').max(100),
-  prenom: z.string().min(1, 'Le prénom est obligatoire.').max(100),
-  identifiant: z
-    .string()
-    .min(1, 'L\'identifiant est obligatoire.')
-    .max(50)
-    .regex(
-      /^[a-zA-Z0-9._-]+$/,
-      'L\'identifiant ne peut contenir que des lettres, chiffres, points, tirets ou underscores.',
-    ),
-  role: roleEnum,
-  moduleAffecte: moduleAffecteEnum,
-  directionId: z.string().min(1, 'Veuillez sélectionner une direction.'),
-})
+export const utilisateurEditSchema =
+  utilisateurBaseSchema.superRefine(refineModuleForRole)
 
-export type UtilisateurEditFormValues = z.infer<typeof utilisateurEditSchema>
+export type UtilisateurEditFormValues = z.infer<typeof utilisateurBaseSchema>

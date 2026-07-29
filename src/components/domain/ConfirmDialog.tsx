@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
 import { Button } from '@/components/ui'
 
@@ -7,9 +7,11 @@ export interface ConfirmDialogProps {
   title: string
   buttonType?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success'
   message: string
+  children?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
   isLoading?: boolean
+  confirmDisabled?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -18,10 +20,12 @@ export function ConfirmDialog({
   open,
   title,
   message,
+  children,
   confirmLabel = 'Confirmer',
   cancelLabel = 'Annuler',
   isLoading = false,
-  buttonType= 'primary',
+  confirmDisabled = false,
+  buttonType = 'primary',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -46,7 +50,7 @@ export function ConfirmDialog({
     <>
       <button
         type="button"
-        className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[1px] h-full"
+        className="fixed inset-0 z-50 h-full bg-slate-900/50 backdrop-blur-[1px]"
         aria-label="Annuler la confirmation"
         onClick={() => {
           if (!isLoading) onCancel()
@@ -74,6 +78,7 @@ export function ConfirmDialog({
             <p id="confirm-dialog-message" className="mt-1 text-sm text-slate-600">
               {message}
             </p>
+            {children ? <div className="mt-4">{children}</div> : null}
           </div>
           <Button
             variant="ghost"
@@ -99,6 +104,7 @@ export function ConfirmDialog({
             type="button"
             variant={buttonType}
             isLoading={isLoading}
+            disabled={confirmDisabled}
             onClick={onConfirm}
           >
             {confirmLabel}

@@ -21,7 +21,7 @@ export interface AuthUser {
   identifiant: string
   role: UserRole
   roles: SymfonyRole[]
-  moduleAffecte: 'EMPLOYEUR' | 'TRAVAILLEUR' | 'LES_DEUX'
+  moduleAffecte: 'EMPLOYEUR' | 'TRAVAILLEUR' | 'LES_DEUX' | null
   isFirstConnexion: boolean
 }
 

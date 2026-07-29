@@ -97,6 +97,7 @@ function resolveActionNiveau(
   if (user.role === 'AGENT_VALIDATION') {
     if (!N1_STATUTS.includes(demande.statut)) return null
     if (
+      user.moduleAffecte &&
       user.moduleAffecte !== 'LES_DEUX' &&
       user.moduleAffecte !== demande.module
     ) {

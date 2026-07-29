@@ -169,7 +169,9 @@ function ProfileHero({ profile }: { profile: UserProfile }) {
           <div>
             <p className="text-xs text-slate-500">Module affecté</p>
             <p className="text-sm font-medium text-cnss-900">
-              {MODULE_AFFECTE_LABELS[profile.moduleAffecte]}
+              {profile.moduleAffecte
+                ? MODULE_AFFECTE_LABELS[profile.moduleAffecte]
+                : '—'}
             </p>
           </div>
         </div>

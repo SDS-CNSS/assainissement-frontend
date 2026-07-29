@@ -19,7 +19,7 @@ interface UtilisateurRaw {
   identifiant: string
   role: UserRole
   niveau: number
-  moduleAffecte: ModuleAffecte
+  moduleAffecte: ModuleAffecte | null
   directionId?: number | string
   directionNom?: string
   directionAbreviation?: string
@@ -56,7 +56,7 @@ function mapUtilisateur(raw: UtilisateurRaw): UtilisateurListItem {
     identifiant: raw.identifiant,
     role: raw.role,
     niveau: raw.niveau,
-    moduleAffecte: raw.moduleAffecte,
+    moduleAffecte: raw.moduleAffecte ?? null,
     directionId: String(directionId),
     directionNom,
     directionAbreviation,

@@ -27,7 +27,7 @@ interface ProfileRaw {
   identifiant: string
   role: UserRole
   niveau: number
-  moduleAffecte: ModuleAffecte
+  moduleAffecte: ModuleAffecte | null
   directionId: number
   directionNom: string
   directionAbreviation: string
@@ -58,7 +58,7 @@ export interface UserProfile {
   identifiant: string
   role: UserRole
   niveau: number
-  moduleAffecte: ModuleAffecte
+  moduleAffecte: ModuleAffecte | null
   directionId: string
   directionNom: string
   directionAbreviation: string
@@ -84,7 +84,7 @@ function mapAuthUser(raw: LoginUserRaw): AuthUser {
     prenom: raw.prenom,
     role: raw.role,
     roles: [ROLE_TO_SYMFONY[raw.role]],
-    moduleAffecte: raw.moduleAffecte,
+    moduleAffecte: raw.moduleAffecte ?? null,
     isFirstConnexion: raw.isFirstConnexion,
   }
 }
@@ -97,7 +97,7 @@ function mapProfile(raw: ProfileRaw): UserProfile {
     identifiant: raw.identifiant,
     role: raw.role,
     niveau: raw.niveau,
-    moduleAffecte: raw.moduleAffecte,
+    moduleAffecte: raw.moduleAffecte ?? null,
     directionId: String(raw.directionId),
     directionNom: raw.directionNom,
     directionAbreviation: raw.directionAbreviation,

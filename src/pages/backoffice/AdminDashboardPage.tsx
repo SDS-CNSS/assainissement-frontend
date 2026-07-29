@@ -1,53 +1,21 @@
-import { Link } from 'react-router-dom'
 import {
-  Building2,
   CheckCircle2,
   ClipboardList,
-  Eye,
   Hourglass,
   ShieldCheck,
-  Users,
 } from 'lucide-react'
 import {
   Alert,
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   Skeleton,
 } from '@/components/ui'
 import { getApiErrorMessage } from '@/api/types'
+import { DashboardCharts } from '@/features/admin/DashboardCharts'
 import { useTableauDeBord } from '@/features/admin/hooks'
 import { useAuthStore } from '@/features/auth/authStore'
 import { userHasRole } from '@/features/auth/types'
 import { cn } from '@/lib/cn'
-
-const ADMIN_SECTIONS = [
-  {
-    label: 'Utilisateurs',
-    description: 'Gestion des utilisateurs',
-    to: '/backoffice/admin/utilisateurs',
-    icon: Users,
-  },
-  {
-    label: 'Directions',
-    description: 'Gestion des directions',
-    to: '/backoffice/admin/directions',
-    icon: Building2,
-  },
-  {
-    label: 'Supervision',
-    description: 'Vue globale des demandes',
-    to: '/backoffice/admin/supervision',
-    icon: Eye,
-  },
-  {
-    label: 'Consolidation',
-    description: 'Écriture IFU/NPI validés dans le référentiel',
-    to: '/backoffice/admin/consolidation',
-    icon: CheckCircle2,
-  },
-] as const
 
 const STAT_CARDS = [
   {
@@ -111,21 +79,21 @@ export function AdminDashboardPage() {
         </h2>
         <p className="mt-1 text-slate-600">
           {isAdmin
-            ? 'Gestion des utilisateurs, directions, supervision et consolidation.'
+            ? 'Vue d’ensemble des demandes, accès aux modules via le menu.'
             : 'Vue d’ensemble des demandes d’assainissement.'}
         </p>
       </div>
 
       {statsError ? <Alert variant="error">{statsError}</Alert> : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {statsQuery.isLoading
           ? Array.from({ length: 4 }).map((_, index) => (
               <Card key={index} className="overflow-hidden">
-                <CardContent className="p-5">
-                  <Skeleton className="size-11 rounded-xl" />
-                  <Skeleton className="mt-5 h-9 w-20" />
-                  <Skeleton className="mt-2 h-4 w-28" />
+                <CardContent className="p-3.5">
+                  <Skeleton className="size-8 rounded-lg" />
+                  <Skeleton className="mt-3 h-7 w-16" />
+                  <Skeleton className="mt-1.5 h-3.5 w-24" />
                 </CardContent>
               </Card>
             ))
@@ -141,29 +109,29 @@ export function AdminDashboardPage() {
                 >
                   <div
                     className={cn(
-                      'pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b',
+                      'pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b',
                       stat.accentClass,
                     )}
                     aria-hidden="true"
                   />
-                  <CardContent className="relative p-5">
+                  <CardContent className="relative p-3.5">
                     <span
                       className={cn(
-                        'flex size-11 items-center justify-center rounded-xl',
+                        'flex size-8 items-center justify-center rounded-lg',
                         stat.iconClass,
                       )}
                     >
-                      <Icon className="size-5" aria-hidden="true" />
+                      <Icon className="size-4" aria-hidden="true" />
                     </span>
                     <p
                       className={cn(
-                        'mt-5 font-display text-3xl font-semibold tracking-tight',
+                        'mt-3 font-display text-2xl font-semibold tracking-tight',
                         stat.valueClass,
                       )}
                     >
                       {stats[stat.key].toLocaleString('fr-FR')}
                     </p>
-                    <p className="mt-1 text-sm font-medium text-slate-700">
+                    <p className="mt-0.5 text-sm font-medium text-slate-700">
                       {stat.label}
                     </p>
                     <p className="mt-0.5 text-xs text-slate-500">{stat.hint}</p>
@@ -174,30 +142,24 @@ export function AdminDashboardPage() {
           : null}
       </div>
 
-      {isAdmin ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-          {ADMIN_SECTIONS.map((section) => {
-            const Icon = section.icon
-            return (
-              <Link key={section.to} to={section.to} className="group block">
-                <Card className="h-full transition-shadow duration-200 group-hover:shadow-md">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <span className="flex size-10 items-center justify-center rounded-lg bg-cnss-100 text-cnss-700">
-                        <Icon className="size-5" aria-hidden="true" />
-                      </span>
-                      <CardTitle>{section.label}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-slate-600">{section.description}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            )
-          })}
+      {statsQuery.isLoading ? (
+        <div className="grid gap-4 lg:grid-cols-5">
+          <Card className="lg:col-span-3">
+            <CardContent className="space-y-3 p-5">
+              <Skeleton className="h-5 w-48" />
+              <Skeleton className="h-64 w-full" />
+            </CardContent>
+          </Card>
+          <Card className="lg:col-span-2">
+            <CardContent className="space-y-3 p-5">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="mx-auto size-48 rounded-full" />
+            </CardContent>
+          </Card>
         </div>
       ) : null}
+
+      {!statsQuery.isLoading && stats ? <DashboardCharts stats={stats} /> : null}
     </div>
   )
 }

@@ -19,7 +19,7 @@ export interface UtilisateurListItem {
   identifiant: string
   role: UserRole
   niveau: number
-  moduleAffecte: ModuleAffecte
+  moduleAffecte: ModuleAffecte | null
   directionId: string
   directionNom: string
   directionAbreviation: string
@@ -35,7 +35,7 @@ export interface CreateUtilisateurPayload {
   prenom: string
   identifiant: string
   role: UserRole
-  moduleAffecte: ModuleAffecte
+  moduleAffecte: ModuleAffecte | null
   directionId: string
 }
 
@@ -44,7 +44,7 @@ export interface UpdateUtilisateurPayload {
   prenom: string
   identifiant: string
   role: UserRole
-  moduleAffecte: ModuleAffecte
+  moduleAffecte: ModuleAffecte | null
   directionId: string
 }
 
@@ -77,6 +77,7 @@ export interface TableauDeBordFilters {
 }
 
 export interface EvolutionPoint {
+  /** Mois au format YYYY-MM */
   date: string
   count: number
   employeur: number

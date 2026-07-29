@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Download, Layers } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -8,7 +8,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Label,
   Skeleton,
 } from '@/components/ui'
 import { ConfirmDialog } from '@/components/domain/ConfirmDialog'
@@ -22,6 +21,7 @@ import {
   CONSOLIDATION_MODULE_LABELS,
   downloadConsolidationFiles,
   fetchConsolidationPreview,
+  redownloadConsolidationExport,
   runConsolidationExport,
   type ConsolidationModule,
 } from '@/api/admin/consolidation'
@@ -30,36 +30,62 @@ import { cn } from '@/lib/cn'
 
 const previewKey = ['admin', 'consolidation-preview'] as const
 
-function pickDefaultModule(
+type ModuleSelection = {
+  employeur: boolean
+  travailleur: boolean
+}
+
+const EMPTY_SELECTION: ModuleSelection = {
+  employeur: false,
+  travailleur: false,
+}
+
+function defaultSelection(
   eligibleEmployeur: number,
   eligibleTravailleur: number,
+): ModuleSelection {
+  return {
+    employeur: eligibleEmployeur > 0,
+    travailleur: eligibleTravailleur > 0,
+  }
+}
+
+/** Mappe les cases cochées vers le périmètre API (LES_DEUX = 2 fichiers Excel). */
+function selectionToScope(
+  selection: ModuleSelection,
 ): ConsolidationModule | null {
-  if (eligibleEmployeur > 0 && eligibleTravailleur > 0) return 'LES_DEUX'
-  if (eligibleEmployeur > 0) return 'EMPLOYEUR'
-  if (eligibleTravailleur > 0) return 'TRAVAILLEUR'
+  if (selection.employeur && selection.travailleur) return 'LES_DEUX'
+  if (selection.employeur) return 'EMPLOYEUR'
+  if (selection.travailleur) return 'TRAVAILLEUR'
   return null
 }
 
 function selectedEligibleCount(
-  module: ConsolidationModule | null,
+  selection: ModuleSelection,
   eligibleEmployeur: number,
   eligibleTravailleur: number,
 ): number {
-  if (module === 'EMPLOYEUR') return eligibleEmployeur
-  if (module === 'TRAVAILLEUR') return eligibleTravailleur
-  if (module === 'LES_DEUX') return eligibleEmployeur + eligibleTravailleur
-  return 0
+  return (
+    (selection.employeur ? eligibleEmployeur : 0) +
+    (selection.travailleur ? eligibleTravailleur : 0)
+  )
 }
 
 function selectedConflictCount(
-  module: ConsolidationModule | null,
+  selection: ModuleSelection,
   conflictEmployeur: number,
   conflictTravailleur: number,
 ): number {
-  if (module === 'EMPLOYEUR') return conflictEmployeur
-  if (module === 'TRAVAILLEUR') return conflictTravailleur
-  if (module === 'LES_DEUX') return conflictEmployeur + conflictTravailleur
-  return 0
+  return (
+    (selection.employeur ? conflictEmployeur : 0) +
+    (selection.travailleur ? conflictTravailleur : 0)
+  )
+}
+
+function selectedFileCount(selection: ModuleSelection): number {
+  return (
+    (selection.employeur ? 1 : 0) + (selection.travailleur ? 1 : 0)
+  )
 }
 
 /**
@@ -70,8 +96,7 @@ export function AdminConsolidationPage() {
   const queryClient = useQueryClient()
   const { feedback, setFeedback, clearFeedback } = useFlashFeedback()
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [selectedModule, setSelectedModule] =
-    useState<ConsolidationModule | null>(null)
+  const [selection, setSelection] = useState<ModuleSelection>(EMPTY_SELECTION)
 
   const previewQuery = useQuery({
     queryKey: previewKey,
@@ -88,33 +113,14 @@ export function AdminConsolidationPage() {
   const conflictEmployeur = previewQuery.data?.conflictEmployeur ?? 0
   const conflictTravailleur = previewQuery.data?.conflictTravailleur ?? 0
 
-  const availableModules = useMemo(() => {
-    const options: ConsolidationModule[] = []
-    if (eligibleEmployeur > 0) options.push('EMPLOYEUR')
-    if (eligibleTravailleur > 0) options.push('TRAVAILLEUR')
-    if (eligibleEmployeur > 0 && eligibleTravailleur > 0) options.push('LES_DEUX')
-    return options
-  }, [eligibleEmployeur, eligibleTravailleur])
-
-  useEffect(() => {
-    if (!previewQuery.isSuccess) return
-
-    setSelectedModule((current) => {
-      if (current && availableModules.includes(current)) return current
-      return pickDefaultModule(eligibleEmployeur, eligibleTravailleur)
-    })
-  }, [
-    previewQuery.isSuccess,
-    availableModules,
-    eligibleEmployeur,
-    eligibleTravailleur,
-  ])
+  const selectedScope = selectionToScope(selection)
 
   const consolidateMutation = useMutation({
     mutationFn: (module: ConsolidationModule) => runConsolidationExport(module),
     onSuccess: async (result) => {
       downloadConsolidationFiles(result.files)
       setConfirmOpen(false)
+      setSelection(EMPTY_SELECTION)
       const fileCount = result.files.length
       const fileLabel =
         fileCount > 1
@@ -149,19 +155,45 @@ export function AdminConsolidationPage() {
     },
   })
 
+  const redownloadMutation = useMutation({
+    mutationFn: (auditLogId: string) =>
+      redownloadConsolidationExport(auditLogId),
+    onSuccess: (files) => {
+      downloadConsolidationFiles(files)
+      const fileCount = files.length
+      setFeedback({
+        variant: 'success',
+        message:
+          fileCount > 1
+            ? `${fileCount} fichiers Excel retéléchargés.`
+            : 'Fichier Excel retéléchargé.',
+      })
+    },
+    onError: (error) => {
+      setFeedback({
+        variant: 'error',
+        message: getApiErrorMessage(
+          error,
+          'Impossible de retélécharger cet export.',
+        ),
+      })
+    },
+  })
+
   const preview = previewQuery.data
   const eligibleCount = preview?.eligibleCount ?? 0
   const conflictCount = preview?.conflictCount ?? 0
   const scopedEligibleCount = selectedEligibleCount(
-    selectedModule,
+    selection,
     eligibleEmployeur,
     eligibleTravailleur,
   )
   const scopedConflictCount = selectedConflictCount(
-    selectedModule,
+    selection,
     conflictEmployeur,
     conflictTravailleur,
   )
+  const fileCountPreview = selectedFileCount(selection)
 
   const previewError = previewQuery.isError
     ? getApiErrorMessage(
@@ -170,10 +202,19 @@ export function AdminConsolidationPage() {
       )
     : null
 
-  const canConsolidate =
-    selectedModule !== null &&
-    scopedEligibleCount > 0 &&
-    !consolidateMutation.isPending
+  const canOpenConsolidate =
+    eligibleCount > 0 && !consolidateMutation.isPending
+
+  const openConsolidateDialog = () => {
+    setSelection(defaultSelection(eligibleEmployeur, eligibleTravailleur))
+    setConfirmOpen(true)
+  }
+
+  const closeConsolidateDialog = () => {
+    if (consolidateMutation.isPending) return
+    setConfirmOpen(false)
+    setSelection(EMPTY_SELECTION)
+  }
 
   return (
     <div className="space-y-6">
@@ -236,14 +277,14 @@ export function AdminConsolidationPage() {
             Lancer la consolidation
           </CardTitle>
           <Button
-            disabled={!canConsolidate}
-            onClick={() => setConfirmOpen(true)}
+            disabled={!canOpenConsolidate}
+            onClick={openConsolidateDialog}
           >
             <Download className="size-4" aria-hidden />
             Consolider et télécharger les Excel
           </Button>
         </CardHeader>
-        <CardContent className="space-y-4 text-sm text-slate-600">
+        <CardContent className="text-sm text-slate-600">
           {eligibleCount === 0 ? (
             conflictCount > 0 ? (
               <p>
@@ -254,48 +295,13 @@ export function AdminConsolidationPage() {
               <p>Aucune demande validée en attente de consolidation.</p>
             )
           ) : (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="consolidation-module">
-                  Module à consolider
-                </Label>
-                <select
-                  id="consolidation-module"
-                  className={cn(
-                    'flex h-10 w-full max-w-md rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cnss-400 focus-visible:ring-offset-1',
-                  )}
-                  value={selectedModule ?? ''}
-                  onChange={(event) =>
-                    setSelectedModule(
-                      event.target.value as ConsolidationModule,
-                    )
-                  }
-                >
-                  {availableModules.map((module) => (
-                    <option key={module} value={module}>
-                      {CONSOLIDATION_MODULE_LABELS[module]}
-                      {module === 'EMPLOYEUR'
-                        ? ` — ${eligibleEmployeur}`
-                        : module === 'TRAVAILLEUR'
-                          ? ` — ${eligibleTravailleur}`
-                          : ` — ${eligibleEmployeur + eligibleTravailleur}`}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-slate-500">
-                  Seuls les modules disposant de données éligibles sont proposés.
-                </p>
-              </div>
-              <p>
-                {scopedEligibleCount} demande(s) seront appliquée(s) au
-                référentiel
-                {selectedModule
-                  ? ` (${CONSOLIDATION_MODULE_LABELS[selectedModule]})`
-                  : ''}
-                .
-              </p>
-            </>
+            <p>
+              {eligibleCount} demande(s) éligible(s) au total
+              {eligibleEmployeur > 0 || eligibleTravailleur > 0
+                ? ` (${eligibleEmployeur} employeur${eligibleEmployeur > 1 ? 's' : ''}, ${eligibleTravailleur} travailleur${eligibleTravailleur > 1 ? 's' : ''})`
+                : ''}
+              . Choisissez les modules à cocher au moment de consolider.
+            </p>
           )}
         </CardContent>
       </Card>
@@ -322,28 +328,28 @@ export function AdminConsolidationPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(preview?.conflicts ?? []).map((row) => (
+                    {(preview?.conflicts ?? []).map((conflict) => (
                       <tr
-                        key={row.numeroDemande}
+                        key={`${conflict.numeroDemande}-${conflict.numeroCNSS}`}
                         className="border-b border-slate-100"
                       >
                         <td className="px-2 py-2 font-mono text-xs">
-                          {row.numeroDemande}
+                          {conflict.numeroDemande}
                         </td>
-                        <td className="px-2 py-2">{row.module}</td>
+                        <td className="px-2 py-2">{conflict.module}</td>
                         <td className="px-2 py-2 font-mono text-xs">
-                          {row.numeroCNSS}
+                          {conflict.numeroCNSS}
                         </td>
-                        <td className="px-2 py-2 font-mono text-xs">
-                          {row.valeurConsolidee ?? '—'}
+                        <td className="px-2 py-2">
+                          {conflict.valeurConsolidee ?? '—'}
                         </td>
-                        <td className="px-2 py-2 font-mono text-xs">
-                          {row.valeurReferentielAvant ?? '—'}
+                        <td className="px-2 py-2">
+                          {conflict.valeurReferentielAvant ?? '—'}
                         </td>
                         <td className="px-2 py-2 text-amber-800">
-                          {row.motifConflit
-                            ? (CONFLICT_MOTIF_LABELS[row.motifConflit] ??
-                              row.motifConflit)
+                          {conflict.motifConflit
+                            ? (CONFLICT_MOTIF_LABELS[conflict.motifConflit] ??
+                              conflict.motifConflit)
                             : '—'}
                         </td>
                       </tr>
@@ -372,17 +378,60 @@ export function AdminConsolidationPage() {
             <p className="text-sm text-slate-500">Aucun export pour le moment.</p>
           ) : (
             <ul className="space-y-2 text-sm">
-              {lastExportQuery.data?.items.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-100 px-3 py-2"
-                >
-                  <span className="text-slate-700">
-                    {new Date(entry.timestamp).toLocaleString('fr-FR')}
-                    {entry.utilisateur ? ` — ${entry.utilisateur}` : ''}
-                  </span>
-                </li>
-              ))}
+              {lastExportQuery.data?.items.map((entry) => {
+                const isDownloading =
+                  redownloadMutation.isPending &&
+                  redownloadMutation.variables === entry.id
+                const count =
+                  typeof entry.valeurApres?.count === 'number'
+                    ? entry.valeurApres.count
+                    : null
+                const moduleRaw = entry.valeurApres?.module
+                const moduleLabel =
+                  typeof moduleRaw === 'string' &&
+                  moduleRaw in CONSOLIDATION_MODULE_LABELS
+                    ? CONSOLIDATION_MODULE_LABELS[
+                        moduleRaw as ConsolidationModule
+                      ]
+                    : null
+
+                return (
+                  <li
+                    key={entry.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-100 px-3 py-2"
+                  >
+                    <div className="min-w-0 text-slate-700">
+                      <p>
+                        {new Date(entry.timestamp).toLocaleString('fr-FR')}
+                        {entry.utilisateur ? ` — ${entry.utilisateur}` : ''}
+                      </p>
+                      {count !== null || moduleLabel ? (
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {[
+                            count !== null ? `${count} demande(s)` : null,
+                            moduleLabel,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 gap-1.5"
+                      isLoading={isDownloading}
+                      disabled={redownloadMutation.isPending}
+                      onClick={() => redownloadMutation.mutate(entry.id)}
+                      aria-label={`Retélécharger l'export du ${new Date(entry.timestamp).toLocaleString('fr-FR')}`}
+                    >
+                      <Download className="size-4" aria-hidden="true" />
+                      Télécharger
+                    </Button>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </CardContent>
@@ -391,22 +440,78 @@ export function AdminConsolidationPage() {
       <ConfirmDialog
         open={confirmOpen}
         title="Confirmer la consolidation"
-        message={
-          selectedModule
-            ? `Consolider ${scopedEligibleCount} demande(s) — ${CONSOLIDATION_MODULE_LABELS[selectedModule]} — dans le référentiel ?${
-                scopedConflictCount > 0
-                  ? ` ${scopedConflictCount} fiche(s) absente(s) resteront non appliquées.`
-                  : ''
-              } Un fichier Excel sera téléchargé par module concerné. Cette opération est irréversible.`
-            : ''
-        }
+        message="Cochez le ou les modules à consolider. Un fichier Excel sera téléchargé pour chaque module coché. Cette opération est irréversible."
         confirmLabel="Consolider"
         isLoading={consolidateMutation.isPending}
+        confirmDisabled={
+          selectedScope === null || scopedEligibleCount === 0
+        }
         onConfirm={() => {
-          if (selectedModule) consolidateMutation.mutate(selectedModule)
+          if (selectedScope) consolidateMutation.mutate(selectedScope)
         }}
-        onCancel={() => setConfirmOpen(false)}
-      />
+        onCancel={closeConsolidateDialog}
+      >
+        <fieldset className="space-y-3" disabled={consolidateMutation.isPending}>
+          <legend className="sr-only">Modules à consolider</legend>
+
+          {eligibleEmployeur > 0 ? (
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5 hover:bg-slate-50">
+              <input
+                type="checkbox"
+                className="size-4 rounded border-slate-300 text-cnss-700 focus:ring-cnss-400"
+                checked={selection.employeur}
+                onChange={(event) =>
+                  setSelection((current) => ({
+                    ...current,
+                    employeur: event.target.checked,
+                  }))
+                }
+              />
+              <span className="text-sm font-medium text-slate-800">
+                IFU — {eligibleEmployeur}
+              </span>
+            </label>
+          ) : null}
+
+          {eligibleTravailleur > 0 ? (
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5 hover:bg-slate-50">
+              <input
+                type="checkbox"
+                className="size-4 rounded border-slate-300 text-cnss-700 focus:ring-cnss-400"
+                checked={selection.travailleur}
+                onChange={(event) =>
+                  setSelection((current) => ({
+                    ...current,
+                    travailleur: event.target.checked,
+                  }))
+                }
+              />
+              <span className="text-sm font-medium text-slate-800">
+                NPI — {eligibleTravailleur}
+              </span>
+            </label>
+          ) : null}
+
+          {scopedEligibleCount > 0 ? (
+            <p className="text-xs text-slate-500">
+              {scopedEligibleCount} demande(s) seront appliquée(s)
+              {fileCountPreview > 1
+                ? ` · ${fileCountPreview} fichiers Excel`
+                : fileCountPreview === 1
+                  ? ' · 1 fichier Excel'
+                  : ''}
+              {scopedConflictCount > 0
+                ? ` · ${scopedConflictCount} fiche(s) absente(s) resteront non appliquées`
+                : ''}
+              .
+            </p>
+          ) : (
+            <p className="text-xs text-statut-rejetee">
+              Cochez au moins un module pour continuer.
+            </p>
+          )}
+        </fieldset>
+      </ConfirmDialog>
     </div>
   )
 }
