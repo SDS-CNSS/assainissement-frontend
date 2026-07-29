@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, FileText, History, X } from 'lucide-react'
 import { Alert, Button, CardContent, Skeleton } from '@/components/ui'
@@ -34,7 +34,7 @@ import type { StatutDemande } from '@/lib/statutDemande'
 import { cn } from '@/lib/cn'
 
 type DetailTab = 'details' | 'historique'
-type ActionNiveau = 'N1' | 'N2' | 'SUPERVISEUR'
+type ActionNiveau = 'N1' | 'N2' | 'CONTROLEUR'
 
 const TABS: { id: DetailTab; label: string; icon: typeof FileText }[] = [
   { id: 'details', label: 'Détails', icon: FileText },
@@ -43,7 +43,7 @@ const TABS: { id: DetailTab; label: string; icon: typeof FileText }[] = [
 
 const N1_STATUTS: StatutDemande[] = ['EN_ATTENTE_N1']
 const N2_STATUTS: StatutDemande[] = ['EN_ATTENTE_N2', 'REJETEE_N1_EN_ATTENTE_N2']
-const SUPERVISEUR_STATUTS: StatutDemande[] = ['EN_ATTENTE_SUPERVISEUR']
+const CONTROLEUR_STATUTS: StatutDemande[] = ['EN_ATTENTE_SUPERVISEUR']
 
 function resolveBackLink(
   role: string | undefined,
@@ -70,9 +70,9 @@ function resolveBackLink(
         backTo: '/backoffice/agent',
         backLabel: 'Retour à la file',
       }
-    case 'SUPERVISEUR':
+    case 'CONTROLEUR':
       return {
-        backTo: '/backoffice/superviseur',
+        backTo: '/backoffice/controleur',
         backLabel: 'Retour à l\'arbitrage',
       }
     default:
@@ -87,7 +87,7 @@ function parseTab(value: string | null): DetailTab {
   return value === 'historique' ? 'historique' : 'details'
 }
 
-/** Aligné sur DemandeVoter (VALIDATE/REJECT N1|N2|SUPERVISEUR). */
+/** Aligné sur DemandeVoter (VALIDATE/REJECT N1|N2|Contrôleur). */
 function resolveActionNiveau(
   user: AuthUser | null | undefined,
   demande: DemandeDetail,
@@ -109,8 +109,8 @@ function resolveActionNiveau(
     return N2_STATUTS.includes(demande.statut) ? 'N2' : null
   }
 
-  if (user.role === 'SUPERVISEUR') {
-    return SUPERVISEUR_STATUTS.includes(demande.statut) ? 'SUPERVISEUR' : null
+  if (user.role === 'CONTROLEUR') {
+    return CONTROLEUR_STATUTS.includes(demande.statut) ? 'CONTROLEUR' : null
   }
 
   return null
@@ -118,7 +118,7 @@ function resolveActionNiveau(
 
 /**
  * UC-11 / RG-11 : détail + historique sur une même page (onglets).
- * UC-06 à UC-10 + arbitrage Superviseur : actions Valider / Rejeter selon rôle et statut.
+ * UC-06 à UC-10 + arbitrage Contrôleur : actions Valider / Rejeter selon rôle et statut.
  */
 export function DemandeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -192,7 +192,7 @@ export function DemandeDetailPage() {
           ? 'La validation a échoué. Veuillez réessayer.'
           : actionNiveau === 'N2'
             ? 'La validation a échoué. Veuillez réessayer.'
-            : 'La validation Superviseur a échoué. Veuillez réessayer.'
+            : 'La validation Contrôleur a échoué. Veuillez réessayer.'
       setFeedback({
         variant: 'error',
         message: getApiErrorMessage(error, fallback),
@@ -218,7 +218,7 @@ export function DemandeDetailPage() {
           ? 'Le rejet a échoué. Veuillez réessayer.'
           : actionNiveau === 'N2'
             ? 'Le rejet a échoué. Veuillez réessayer.'
-            : 'Le rejet Superviseur a échoué. Veuillez réessayer.'
+            : 'Le rejet Contrôleur a échoué. Veuillez réessayer.'
       setFeedback({
         variant: 'error',
         message: getApiErrorMessage(error, fallback),
@@ -379,21 +379,21 @@ export function DemandeDetailPage() {
       <ConfirmDialog
         open={confirmOpen}
         title={
-          actionNiveau === 'SUPERVISEUR'
+          actionNiveau === 'CONTROLEUR'
             ? 'Confirmer la validation définitive'
             : 'Confirmer la validation'
         }
         message={
           demande
-            ? actionNiveau === 'SUPERVISEUR'
+            ? actionNiveau === 'CONTROLEUR'
               ? `Valider définitivement la demande ${demande.numeroDemande} ? Votre décision sera notifiée au demandeur.`
               : `Valider la demande ${demande.numeroDemande} ?`
             : ''
         }
         confirmLabel={
-          actionNiveau === 'SUPERVISEUR' ? 'Valider définitivement' : 'Oui'
+          actionNiveau === 'CONTROLEUR' ? 'Valider définitivement' : 'Oui'
         }
-        cancelLabel={actionNiveau === 'SUPERVISEUR' ? 'Annuler' : 'Non'}
+        cancelLabel={actionNiveau === 'CONTROLEUR' ? 'Annuler' : 'Non'}
         isLoading={
           validerN1.isPending ||
           validerN2.isPending ||
@@ -406,19 +406,19 @@ export function DemandeDetailPage() {
       <RejetModal
         open={rejetOpen}
         title={
-          actionNiveau === 'SUPERVISEUR'
-            ? 'Rejeter la demande (Superviseur)'
+          actionNiveau === 'CONTROLEUR'
+            ? 'Rejeter la demande (Contrôleur)'
             : 'Rejeter la demande'
         }
         description={
           demande
-            ? actionNiveau === 'SUPERVISEUR'
+            ? actionNiveau === 'CONTROLEUR'
               ? `Indiquez le motif de rejet pour ${demande.numeroDemande}. Le demandeur sera notifié.`
               : `Rejeter la demande ${demande.numeroDemande} ?`
             : undefined
         }
-        confirmLabel={actionNiveau === 'SUPERVISEUR' ? 'Confirmer le rejet' : 'Oui'}
-        cancelLabel={actionNiveau === 'SUPERVISEUR' ? 'Annuler' : 'Non'}
+        confirmLabel={actionNiveau === 'CONTROLEUR' ? 'Confirmer le rejet' : 'Oui'}
+        cancelLabel={actionNiveau === 'CONTROLEUR' ? 'Annuler' : 'Non'}
         isLoading={
           rejeterN1.isPending ||
           rejeterN2.isPending ||

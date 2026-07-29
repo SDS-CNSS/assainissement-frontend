@@ -8,7 +8,7 @@ import { cn } from '@/lib/cn'
 
 export interface BadgeStatutDemandeProps {
   statut: StatutDemande
-  /** Portail suivi public : libellés simplifiés En attente / Terminée. */
+  /** Portail suivi public : En attente / En cours / Validée / Rejetée. */
   publicSuivi?: boolean
   /** Files Agent 1 / Agent 2 / Superviseur : « En attente » sans précision de niveau. */
   compact?: boolean

@@ -25,7 +25,7 @@ const MODULE_TABS: { value: ModuleFilterTab; label: string }[] = [
 
 /**
  * Historique personnel des demandes validées ou rejetées
- * (Agent 1, Agent 2, Superviseur) — consultation seule, sans action.
+ * (Agent 1, Agent 2, Contrôleur) — consultation seule, sans action.
  */
 export function HistoriqueTraitementsPage() {
   const navigate = useNavigate()

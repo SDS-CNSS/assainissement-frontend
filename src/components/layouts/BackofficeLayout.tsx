@@ -1,7 +1,6 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { useState } from "react";
 import {
-  BarChart3,
   Building2,
   ClipboardList,
   Eye,
@@ -48,9 +47,9 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     label: "Arbitrage",
-    to: "/backoffice/superviseur",
+    to: "/backoffice/controleur",
     icon: Scale,
-    roles: ["ROLE_SUPERVISEUR"],
+    roles: ["ROLE_CONTROLEUR"],
   },
   {
     label: "Historique",
@@ -59,14 +58,14 @@ const NAV_ITEMS: NavItem[] = [
     roles: [
       "ROLE_AGENT_VALIDATION",
       "ROLE_CHEF_VALIDATION",
-      "ROLE_SUPERVISEUR",
+      "ROLE_CONTROLEUR",
     ],
   },
   {
     label: "Tableau de bord",
     to: "/backoffice/admin",
     icon: LayoutDashboard,
-    roles: ["ROLE_ADMIN"],
+    roles: ["ROLE_ADMIN", "ROLE_SUPERVISEUR"],
     end: true,
   },
   {
@@ -85,12 +84,6 @@ const NAV_ITEMS: NavItem[] = [
     label: "Supervision",
     to: "/backoffice/admin/supervision",
     icon: Eye,
-    roles: ["ROLE_ADMIN"],
-  },
-  {
-    label: "Statistiques",
-    to: "/backoffice/admin/statistiques",
-    icon: BarChart3,
     roles: ["ROLE_ADMIN"],
   },
   {

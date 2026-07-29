@@ -59,19 +59,3 @@ export async function fetchTableauDeBord(
   )
   return mapTableauDeBord(data)
 }
-
-/** UC-13 : export Excel (.xlsx). */
-export async function exportStatistiquesXlsx(
-  filters?: TableauDeBordFilters,
-): Promise<Blob> {
-  const { data } = await apiClient.get<Blob>('/statistiques/export', {
-    params: {
-      dateDebut: filters?.dateDebut,
-      dateFin: filters?.dateFin,
-      module: filters?.module,
-      statut: filters?.statut,
-    },
-    responseType: 'blob',
-  })
-  return data
-}

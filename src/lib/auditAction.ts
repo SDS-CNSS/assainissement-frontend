@@ -11,6 +11,8 @@ export type AuditAction =
   | 'UTILISATEUR_UPDATE'
   | 'UTILISATEUR_DEACTIVATE'
   | 'UTILISATEUR_DEVERROUILLER'
+  | 'UTILISATEUR_RESET_PASSWORD'
+  | 'UTILISATEUR_DELETE'
   | 'STATISTIQUES_EXPORT'
   | 'PASSWORD_CHANGE'
   | 'DEMANDE_VALIDATION_N1'
@@ -31,14 +33,16 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   UTILISATEUR_UPDATE: 'Modification d\'utilisateur',
   UTILISATEUR_DEACTIVATE: 'Désactivation d\'utilisateur',
   UTILISATEUR_DEVERROUILLER: 'Déverrouillage de compte',
+  UTILISATEUR_RESET_PASSWORD: 'Réinitialisation de mot de passe',
+  UTILISATEUR_DELETE: 'Suppression d\'utilisateur',
   STATISTIQUES_EXPORT: 'Export statistiques',
   PASSWORD_CHANGE: 'Changement de mot de passe',
   DEMANDE_VALIDATION_N1: 'Validation Agent 1 de demande',
   DEMANDE_REJET_N1: 'Rejet Agent 1 de demande',
   DEMANDE_VALIDATION_N2: 'Validation Agent 2 de demande',
   DEMANDE_REJET_N2: 'Rejet Agent 2 de demande',
-  DEMANDE_VALIDATION_SUPERVISEUR: 'Validation Superviseur de demande',
-  DEMANDE_REJET_SUPERVISEUR: 'Rejet Superviseur de demande',
+  DEMANDE_VALIDATION_SUPERVISEUR: 'Validation Contrôleur de demande',
+  DEMANDE_REJET_SUPERVISEUR: 'Rejet Contrôleur de demande',
   CONSOLIDATION: 'Consolidation référentiel',
 }
 
@@ -75,5 +79,6 @@ export const ROLE_SHORT_LABELS: Record<UserRole, string> = {
   ADMINISTRATEUR: 'ADMIN',
   AGENT_VALIDATION: 'AGENT 1',
   CHEF_VALIDATION: 'AGENT 2',
+  CONTROLEUR: 'CONTROLEUR',
   SUPERVISEUR: 'SUPERVISEUR',
 }

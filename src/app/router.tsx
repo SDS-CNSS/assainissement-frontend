@@ -11,18 +11,17 @@ import { AdminAuditLogPage } from '@/pages/backoffice/AdminAuditLogPage'
 import { AdminConsolidationPage } from '@/pages/backoffice/AdminConsolidationPage'
 import { AdminDashboardPage } from '@/pages/backoffice/AdminDashboardPage'
 import { AdminDirectionsPage } from '@/pages/backoffice/AdminDirectionsPage'
-import { AdminStatistiquesPage } from '@/pages/backoffice/AdminStatistiquesPage'
 import { AdminSupervisionPage } from '@/pages/backoffice/AdminSupervisionPage'
 import { AdminUtilisateursPage } from '@/pages/backoffice/AdminUtilisateursPage'
 import { AgentN1DashboardPage } from '@/pages/backoffice/AgentN1DashboardPage'
 import { BackofficeHomeRedirect } from '@/pages/backoffice/BackofficeHomeRedirect'
 import { ChangePasswordPage } from '@/pages/backoffice/ChangePasswordPage'
 import { ChefN2DashboardPage } from '@/pages/backoffice/ChefN2DashboardPage'
+import { ControleurDashboardPage } from '@/pages/backoffice/ControleurDashboardPage'
 import { DemandeDetailPage } from '@/pages/backoffice/DemandeDetailPage'
 import { HistoriqueTraitementsPage } from '@/pages/backoffice/HistoriqueTraitementsPage'
 import { LoginPage } from '@/pages/backoffice/LoginPage'
 import { ProfilPage } from '@/pages/backoffice/ProfilPage'
-import { SuperviseurDashboardPage } from '@/pages/backoffice/SuperviseurDashboardPage'
 import { AccueilPage } from '@/pages/portail/AccueilPage'
 import { EmployeurPage } from '@/pages/portail/EmployeurPage'
 import { SuiviPage } from '@/pages/portail/SuiviPage'
@@ -79,11 +78,16 @@ export const router = createBrowserRouter([
                 ],
               },
               {
-                element: <RequireRole roles="ROLE_SUPERVISEUR" />,
+                element: <RequireRole roles="ROLE_CONTROLEUR" />,
                 children: [
                   {
+                    path: 'controleur',
+                    element: <ControleurDashboardPage />,
+                  },
+                  {
+                    // Ancienne URL Superviseur → Contrôleur
                     path: 'superviseur',
-                    element: <SuperviseurDashboardPage />,
+                    element: <Navigate to="/backoffice/controleur" replace />,
                   },
                 ],
               },
@@ -93,7 +97,7 @@ export const router = createBrowserRouter([
                     roles={[
                       'ROLE_AGENT_VALIDATION',
                       'ROLE_CHEF_VALIDATION',
-                      'ROLE_SUPERVISEUR',
+                      'ROLE_CONTROLEUR',
                     ]}
                   />
                 ),
@@ -105,13 +109,13 @@ export const router = createBrowserRouter([
                 ],
               },
               {
-                // UC-11 / RG-11 : détail + historique (Agent 1, Agent 2, Superviseur, Admin)
+                // UC-11 / RG-11 : détail + historique (Agent 1, Agent 2, Contrôleur, Admin)
                 element: (
                   <RequireRole
                     roles={[
                       'ROLE_AGENT_VALIDATION',
                       'ROLE_CHEF_VALIDATION',
-                      'ROLE_SUPERVISEUR',
+                      'ROLE_CONTROLEUR',
                       'ROLE_ADMIN',
                     ]}
                   />
@@ -128,9 +132,16 @@ export const router = createBrowserRouter([
                 ],
               },
               {
-                element: <RequireRole roles="ROLE_ADMIN" />,
+                element: (
+                  <RequireRole roles={['ROLE_ADMIN', 'ROLE_SUPERVISEUR']} />
+                ),
                 children: [
                   { path: 'admin', element: <AdminDashboardPage /> },
+                ],
+              },
+              {
+                element: <RequireRole roles="ROLE_ADMIN" />,
+                children: [
                   {
                     path: 'admin/utilisateurs',
                     element: <AdminUtilisateursPage />,
@@ -142,10 +153,6 @@ export const router = createBrowserRouter([
                   {
                     path: 'admin/supervision',
                     element: <AdminSupervisionPage />,
-                  },
-                  {
-                    path: 'admin/statistiques',
-                    element: <AdminStatistiquesPage />,
                   },
                   {
                     path: 'admin/consolidation',

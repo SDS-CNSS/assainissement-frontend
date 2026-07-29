@@ -173,6 +173,10 @@ export async function updateUtilisateur(
   return mapUtilisateur(data)
 }
 
+export async function deleteUtilisateur(id: string): Promise<void> {
+  await apiClient.delete(`/utilisateurs/${encodeURIComponent(id)}`)
+}
+
 export async function deverrouillerUtilisateur(
   id: string,
 ): Promise<UtilisateurListItem> {
@@ -180,6 +184,22 @@ export async function deverrouillerUtilisateur(
     `/utilisateurs/${encodeURIComponent(id)}/deverrouiller`,
   )
   return mapUtilisateur(data)
+}
+
+/** UC-12 / RG-19 : réinitialisation admin — même payload que la création. */
+export async function resetUtilisateurPassword(
+  id: string,
+): Promise<CreateUtilisateurResponse> {
+  const { data } = await apiClient.post<CreateUtilisateurRaw>(
+    `/utilisateurs/${encodeURIComponent(id)}/reinitialiser-mot-de-passe`,
+  )
+
+  return {
+    utilisateur: mapUtilisateur(data.utilisateur),
+    motDePasseTemporaire: data.motDePasseTemporaire,
+    documentBase64: data.documentBase64,
+    documentFilename: data.documentFilename,
+  }
 }
 
 export async function setUtilisateurStatut(

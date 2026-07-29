@@ -37,7 +37,7 @@ export async function listDemandes(
   }
 }
 
-/** Historique personnel des validations / rejets (Agent 1, Agent 2, Superviseur). */
+/** Historique personnel des validations / rejets (Agent 1, Agent 2, Contrôleur). */
 export async function listMesTraitements(
   params?: ListDemandesParams,
 ): Promise<DemandeListResponse> {

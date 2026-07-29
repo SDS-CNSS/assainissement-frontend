@@ -49,12 +49,12 @@ export const ACTION_HISTORIQUE_MAP: Record<ActionHistorique, ActionHistoriqueMet
       tone: 'danger',
     },
     VALIDATION_SUPERVISEUR: {
-      label: 'Validation définitive Superviseur',
+      label: 'Validation définitive Contrôleur',
       icon: CheckCircle2,
       tone: 'success',
     },
     REJET_SUPERVISEUR: {
-      label: 'Rejet définitif Superviseur',
+      label: 'Rejet définitif Contrôleur',
       icon: XCircle,
       tone: 'danger',
     },

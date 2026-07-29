@@ -12,7 +12,7 @@ describe('ifuStepSchema — RG-15', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.ifu).toContain(
-        'L\'IFU doit comporter exactement 13 chiffres.',
+        'Numéro IFU incorrect',
       )
     }
   })
@@ -40,7 +40,7 @@ describe('ifuEmailStepSchema — RG-07', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.emailConfirmation).toContain(
-        'Les deux adresses courriel doivent être identiques.',
+        'Les deux adresses électroniques doivent être identiques.',
       )
     }
   })

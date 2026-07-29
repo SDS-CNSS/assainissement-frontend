@@ -15,7 +15,9 @@ import {
   Label,
 } from '@/components/ui'
 import { getApiErrorMessage } from '@/api/types'
+import { ConfirmDialog } from '@/components/domain/ConfirmDialog'
 import { Stepper } from '@/components/domain/Stepper'
+import { noClipboardInputProps } from '@/lib/blockFieldClipboard'
 import {
   cnssEmployeurStepSchema,
   ifuEmailStepSchema,
@@ -46,6 +48,10 @@ export function FormulaireDepotIfu() {
   const [raisonSocialeDgi, setRaisonSocialeDgi] = useState('')
   const [numeroDemande, setNumeroDemande] = useState('')
   const [emailDepot, setEmailDepot] = useState('')
+  const [confirmDepotOpen, setConfirmDepotOpen] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState<IfuEmailStepValues | null>(
+    null,
+  )
 
   const verifyCnss = useVerifyEmployeurCnss()
   const verifierIfu = useVerifierIfuDgi()
@@ -87,18 +93,32 @@ export function FormulaireDepotIfu() {
   }
 
   const onEmailSubmit = (values: IfuEmailStepValues) => {
+    setPendingEmail(values)
+    setConfirmDepotOpen(true)
+  }
+
+  const confirmDepot = () => {
+    if (!pendingEmail) return
+
+    const emailValues = pendingEmail
+
     depotIfuMutation.mutate(
       {
         numeroCNSS,
         ifu,
-        email: values.email,
-        emailConfirmation: values.emailConfirmation,
+        email: emailValues.email,
+        emailConfirmation: emailValues.emailConfirmation,
       },
       {
         onSuccess: (data) => {
+          setConfirmDepotOpen(false)
+          setPendingEmail(null)
           setNumeroDemande(data.numeroDemande)
-          setEmailDepot(values.email)
+          setEmailDepot(emailValues.email)
           setCurrentStep(3)
+        },
+        onError: () => {
+          setConfirmDepotOpen(false)
         },
       },
     )
@@ -114,7 +134,7 @@ export function FormulaireDepotIfu() {
   const ifuError = verifierIfu.isError
     ? getApiErrorMessage(
         verifierIfu.error,
-        'Impossible de vérifier l\'IFU auprès de la DGI. Veuillez réessayer.',
+        'Numéro IFU incorrect',
       )
     : null
 
@@ -195,12 +215,6 @@ export function FormulaireDepotIfu() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {ifuError ? (
-              <Alert variant="error" className="mb-4">
-                {ifuError}
-              </Alert>
-            ) : null}
-
             <form
               onSubmit={ifuForm.handleSubmit(onIfuSubmit)}
               className="space-y-4"
@@ -208,7 +222,7 @@ export function FormulaireDepotIfu() {
             >
               <div className="space-y-1.5">
                 <Label htmlFor="ifu" required>
-                  Numéro IFU (13 chiffres)
+                  Numéro IFU
                 </Label>
                 <Input
                   id="ifu"
@@ -216,12 +230,16 @@ export function FormulaireDepotIfu() {
                   autoComplete="off"
                   placeholder="3202512345678"
                   maxLength={13}
-                  hasError={Boolean(ifuForm.formState.errors.ifu)}
+                  hasError={Boolean(ifuForm.formState.errors.ifu || ifuError)}
                   {...ifuForm.register('ifu')}
                 />
                 {ifuForm.formState.errors.ifu ? (
                   <p className="text-sm text-statut-rejetee" role="alert">
                     {ifuForm.formState.errors.ifu.message}
+                  </p>
+                ) : ifuError ? (
+                  <p className="text-sm text-statut-rejetee" role="alert">
+                    {ifuError}
                   </p>
                 ) : null}
               </div>
@@ -251,17 +269,13 @@ export function FormulaireDepotIfu() {
       {currentStep === 2 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Adresse courriel</CardTitle>
+            <CardTitle>Courriel</CardTitle>
             <CardDescription>
               IFU validé — raison sociale DGI :{' '}
               <span className="font-medium text-cnss-800">{raisonSocialeDgi}</span>
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Alert variant="info" className="mb-4">
-              IFU <strong>{ifu}</strong> reconnu par la DGI.
-            </Alert>
-
             {depotError ? (
               <Alert variant="error" className="mb-4">
                 {depotError}
@@ -275,14 +289,14 @@ export function FormulaireDepotIfu() {
             >
               <div className="space-y-1.5">
                 <Label htmlFor="email" required>
-                  Adresse courriel
+                  Adresse électronique
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  autoComplete="email"
                   hasError={Boolean(emailForm.formState.errors.email)}
                   {...emailForm.register('email')}
+                  {...noClipboardInputProps}
                 />
                 {emailForm.formState.errors.email ? (
                   <p className="text-sm text-statut-rejetee" role="alert">
@@ -293,14 +307,14 @@ export function FormulaireDepotIfu() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="emailConfirmation" required>
-                  Confirmation du courriel
+                  Confirmation de l&apos;adresse électronique
                 </Label>
                 <Input
                   id="emailConfirmation"
                   type="email"
-                  autoComplete="email"
                   hasError={Boolean(emailForm.formState.errors.emailConfirmation)}
                   {...emailForm.register('emailConfirmation')}
+                  {...noClipboardInputProps}
                 />
                 {emailForm.formState.errors.emailConfirmation ? (
                   <p className="text-sm text-statut-rejetee" role="alert">
@@ -321,7 +335,6 @@ export function FormulaireDepotIfu() {
                 <Button
                   type="submit"
                   className="w-full sm:w-auto"
-                  isLoading={depotIfuMutation.isPending}
                 >
                   Déposer ma demande
                 </Button>
@@ -360,21 +373,6 @@ export function FormulaireDepotIfu() {
                 </p>
               </div>
 
-              <dl className="mt-6 w-full max-w-sm space-y-3 text-left text-sm">
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
-                  <dt className="shrink-0 text-slate-500">Raison sociale DGI</dt>
-                  <dd className="break-words font-medium text-cnss-900 sm:text-right">
-                    {raisonSocialeDgi}
-                  </dd>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
-                  <dt className="shrink-0 text-slate-500">IFU</dt>
-                  <dd className="break-all font-medium text-cnss-900 sm:text-right">
-                    {ifu}
-                  </dd>
-                </div>
-              </dl>
-
               <Link
                 to={`/suivi?numero=${encodeURIComponent(numeroDemande)}`}
                 className="mt-6 inline-flex h-11 w-full max-w-sm items-center justify-center rounded-lg bg-cnss-700 px-4 text-sm font-medium text-white transition-colors hover:bg-cnss-800 sm:h-10 sm:w-auto"
@@ -385,6 +383,21 @@ export function FormulaireDepotIfu() {
           </CardContent>
         </Card>
       ) : null}
+
+      <ConfirmDialog
+        open={confirmDepotOpen}
+        title="Confirmer le dépôt"
+        message="Confirmez-vous le dépôt de votre demande de mise à jour IFU ? Un e-mail de confirmation vous sera envoyé."
+        confirmLabel="Déposer"
+        cancelLabel="Annuler"
+        isLoading={depotIfuMutation.isPending}
+        onConfirm={confirmDepot}
+        onCancel={() => {
+          if (depotIfuMutation.isPending) return
+          setConfirmDepotOpen(false)
+          setPendingEmail(null)
+        }}
+      />
     </div>
   )
 }

@@ -60,7 +60,7 @@ export const STATUT_DEMANDE_MAP: Record<StatutDemande, StatutDemandeMeta> = {
     ...VARIANT_META.enAttente,
   },
   EN_ATTENTE_SUPERVISEUR: {
-    label: 'En attente Superviseur',
+    label: 'En attente Contrôleur',
     variant: 'enAttente',
     ...VARIANT_META.enAttente,
   },
@@ -100,21 +100,29 @@ export function isStatutFinal(statut: StatutDemande): boolean {
 
 /**
  * Libellés usager pour le portail de suivi public :
- * uniquement « En attente » ou « Terminée » (pas le détail N1/N2/Superviseur).
+ * « En attente » → « En cours » (dès décision Agent 1) → « Validée » / « Rejetée ».
  */
 export function getStatutSuiviPublicMeta(statut: StatutDemande): StatutDemandeMeta {
   if (statut === 'VALIDEE_DEFINITIVEMENT') {
     return {
-      label: 'Terminée',
+      label: 'Validée',
       variant: 'validee',
       ...VARIANT_META.validee,
     }
   }
   if (statut === 'REJETEE_DEFINITIVEMENT') {
     return {
-      label: 'Terminée',
+      label: 'Rejetée',
       variant: 'rejetee',
       ...VARIANT_META.rejetee,
+    }
+  }
+  // Dès validation ou rejet Agent 1, le dossier est en instruction.
+  if (statut !== 'EN_ATTENTE_N1') {
+    return {
+      label: 'En cours',
+      variant: 'enAttente',
+      ...VARIANT_META.enAttente,
     }
   }
   return {
@@ -133,10 +141,11 @@ export function getSuiviProgressStep(statut: StatutDemande): number {
     case 'VALIDEE_DEFINITIVEMENT':
     case 'REJETEE_DEFINITIVEMENT':
       return 3
-    case 'EN_ATTENTE_N1':
     case 'EN_ATTENTE_N2':
     case 'REJETEE_N1_EN_ATTENTE_N2':
     case 'EN_ATTENTE_SUPERVISEUR':
       return 1
+    case 'EN_ATTENTE_N1':
+      return 0
   }
 }

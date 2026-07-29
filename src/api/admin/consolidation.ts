@@ -1,10 +1,13 @@
 import { apiClient } from '../client'
 import { downloadBlob } from '@/lib/downloadBlob'
 
+export type ConsolidationModule = 'EMPLOYEUR' | 'TRAVAILLEUR' | 'LES_DEUX'
+
 export interface ConsolidationConflict {
   numeroDemande: string
   module: string
   numeroCNSS: string
+  raisonSocialeCNSS?: string | null
   typeValeur: string
   valeurConsolidee: string | null
   valeurReferentielAvant: string | null
@@ -36,6 +39,12 @@ export const CONFLICT_MOTIF_LABELS: Record<string, string> = {
   REFERENTIEL_ABSENT: 'Fiche référentiel introuvable pour ce N° CNSS',
 }
 
+export const CONSOLIDATION_MODULE_LABELS: Record<ConsolidationModule, string> = {
+  EMPLOYEUR: 'Employeurs (IFU)',
+  TRAVAILLEUR: 'Travailleurs (NPI)',
+  LES_DEUX: 'Employeurs et travailleurs',
+}
+
 export async function fetchConsolidationPreview(): Promise<ConsolidationPreview> {
   const { data } = await apiClient.get<ConsolidationPreview>(
     '/consolidation/preview',
@@ -62,10 +71,12 @@ export function downloadConsolidationFiles(
   }
 }
 
-export async function runConsolidationExport(): Promise<ConsolidationExportResult> {
+export async function runConsolidationExport(
+  module: ConsolidationModule,
+): Promise<ConsolidationExportResult> {
   const { data } = await apiClient.post<ConsolidationExportResult>(
     '/consolidation/export',
-    null,
+    { module },
     { timeout: 60 * 60 * 1000 },
   )
   return data

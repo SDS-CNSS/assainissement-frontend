@@ -2,8 +2,8 @@ import { z } from 'zod'
 
 const emailField = z
   .string()
-  .min(1, 'Veuillez saisir votre adresse courriel.')
-  .email('L\'adresse courriel saisie n\'est pas valide.')
+  .min(1, 'Veuillez saisir votre adresse électronique.')
+  .email('L\'adresse électronique saisie n\'est pas valide.')
 
 const emailConfirmationRefine = <T extends { email: string; emailConfirmation: string }>(
   data: T,
@@ -12,7 +12,7 @@ const emailConfirmationRefine = <T extends { email: string; emailConfirmation: s
   if (data.email !== data.emailConfirmation) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Les deux adresses courriel doivent être identiques.',
+      message: 'Les deux adresses électroniques doivent être identiques.',
       path: ['emailConfirmation'],
     })
   }
@@ -30,8 +30,8 @@ export const cnssEmployeurStepSchema = z.object({
 export const ifuStepSchema = z.object({
   ifu: z
     .string()
-    .min(1, 'Veuillez saisir votre IFU.')
-    .regex(/^\d{13}$/, 'L\'IFU doit comporter exactement 13 chiffres.'),
+    .min(1, 'Numéro IFU incorrect')
+    .regex(/^\d{13}$/, 'Numéro IFU incorrect'),
 })
 
 /** RG-07 : double saisie courriel strictement identique. */
@@ -40,7 +40,7 @@ export const ifuEmailStepSchema = z
     email: emailField,
     emailConfirmation: z
       .string()
-      .min(1, 'Veuillez confirmer votre adresse courriel.'),
+      .min(1, 'Veuillez confirmer votre adresse électronique.'),
   })
   .superRefine(emailConfirmationRefine)
 
@@ -64,8 +64,8 @@ export const cnssTravailleurStepSchema = z.object({
 export const npiStepSchema = z.object({
   npi: z
     .string()
-    .min(1, 'Veuillez saisir votre NPI.')
-    .regex(/^\d{16}$/, 'Le NPI doit comporter exactement 16 chiffres.'),
+    .min(1, 'Numéro NPI incorrect')
+    .regex(/^\d{16}$/, 'Numéro NPI incorrect'),
 })
 
 /** RG-06 : code OTP à 6 chiffres. */
@@ -81,7 +81,7 @@ export const npiEmailStepSchema = z
     email: emailField,
     emailConfirmation: z
       .string()
-      .min(1, 'Veuillez confirmer votre adresse courriel.'),
+      .min(1, 'Veuillez confirmer votre adresse électronique.'),
   })
   .superRefine(emailConfirmationRefine)
 

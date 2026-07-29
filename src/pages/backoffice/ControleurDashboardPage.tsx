@@ -36,8 +36,8 @@ const MODULE_TABS: { value: ModuleFilterTab; label: string }[] = [
   { value: 'TRAVAILLEUR', label: 'Travailleur' },
 ]
 
-/** File d'attente Superviseur — arbitrage en cas de désaccord Agent 1 / Agent 2. */
-export function SuperviseurDashboardPage() {
+/** File d'attente Contr?leur ? arbitrage en cas de d?saccord Agent 1 / Agent 2. */
+export function ControleurDashboardPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const showModuleTabs = user?.moduleAffecte === 'LES_DEUX'
@@ -67,7 +67,7 @@ export function SuperviseurDashboardPage() {
         ? 'EMPLOYEUR'
         : undefined
 
-  const demandesQuery = useDemandesList(listParams)
+  const demandesQuery = useDemandesList(listParams, { refetchInterval: 30_000 })
   const validerSuperviseur = useValiderSuperviseur()
   const rejeterSuperviseur = useRejeterSuperviseur()
 
@@ -86,7 +86,7 @@ export function SuperviseurDashboardPage() {
         variant: 'error',
         message: getApiErrorMessage(
           error,
-          'La validation Superviseur a échoué. Veuillez réessayer.',
+          'La validation Contr?leur a ?chou?. Veuillez r?essayer.',
         ),
       })
     }
@@ -107,7 +107,7 @@ export function SuperviseurDashboardPage() {
         variant: 'error',
         message: getApiErrorMessage(
           error,
-          'Le rejet Superviseur a échoué. Veuillez réessayer.',
+          'Le rejet Contr?leur a ?chou?. Veuillez r?essayer.',
         ),
       })
     }
@@ -116,7 +116,7 @@ export function SuperviseurDashboardPage() {
   const listError = demandesQuery.isError
     ? getApiErrorMessage(
         demandesQuery.error,
-        'Impossible de charger la file d\'attente Superviseur.',
+        "Impossible de charger la file d'attente Contr?leur.",
       )
     : null
 
@@ -127,7 +127,7 @@ export function SuperviseurDashboardPage() {
           Arbitrage
         </h2>
         <p className="mt-1 text-slate-600">
-          Trancher les demandes en désaccord entre Agent 1 et Agent 2.
+          Trancher les demandes en d?saccord entre Agent 1 et Agent 2.
         </p>
       </div>
 
@@ -137,7 +137,7 @@ export function SuperviseurDashboardPage() {
 
       <Card>
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Demandes à arbitrer</CardTitle>
+          <CardTitle>Demandes ? arbitrer</CardTitle>
 
           {showModuleTabs ? (
             <div
@@ -205,13 +205,14 @@ export function SuperviseurDashboardPage() {
 
       <ConfirmDialog
         open={Boolean(confirmTarget)}
-        title="Confirmer la validation définitive"
+        title="Confirmer la validation d?finitive"
         message={
           confirmTarget
-            ? `Valider définitivement la demande ${confirmTarget.numeroDemande} ? Votre décision sera notifiée au demandeur.`
+            ? `Valider d?finitivement la demande ${confirmTarget.numeroDemande} ? Votre d?cision sera notifi?e au demandeur.`
             : ''
         }
-        confirmLabel="Valider définitivement"
+        confirmLabel="Valider d?finitivement"
+        cancelLabel="Annuler"
         isLoading={validerSuperviseur.isPending}
         onConfirm={handleValiderConfirm}
         onCancel={() => setConfirmTarget(null)}
@@ -219,12 +220,14 @@ export function SuperviseurDashboardPage() {
 
       <RejetModal
         open={Boolean(rejetTarget)}
-        title="Rejeter la demande (Superviseur)"
+        title="Rejeter la demande (Contr?leur)"
         description={
           rejetTarget
-            ? `Indiquez le motif de rejet pour ${rejetTarget.numeroDemande}. Le demandeur sera notifié.`
+            ? `Indiquez le motif de rejet pour ${rejetTarget.numeroDemande}. Le demandeur sera notifi?.`
             : undefined
         }
+        confirmLabel="Confirmer le rejet"
+        cancelLabel="Annuler"
         isLoading={rejeterSuperviseur.isPending}
         onClose={() => setRejetTarget(null)}
         onSubmit={handleRejetSubmit}

@@ -15,7 +15,9 @@ import {
   Label,
 } from '@/components/ui'
 import { getApiErrorMessage } from '@/api/types'
+import { ConfirmDialog } from '@/components/domain/ConfirmDialog'
 import { Stepper } from '@/components/domain/Stepper'
+import { noClipboardInputProps } from '@/lib/blockFieldClipboard'
 import {
   cnssTravailleurStepSchema,
   npiEmailStepSchema,
@@ -63,6 +65,10 @@ export function FormulaireDepotNpi() {
   const [anipIdentite, setAnipIdentite] = useState<AnipIdentite | null>(null)
   const [useSameEmail, setUseSameEmail] = useState<boolean | null>(null)
   const [numeroDemande, setNumeroDemande] = useState('')
+  const [confirmDepotOpen, setConfirmDepotOpen] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState<NpiEmailStepValues | null>(
+    null,
+  )
 
   const verifyCnss = useVerifyTravailleurCnss()
   const verifierNpi = useVerifierNpiAnip()
@@ -95,6 +101,11 @@ export function FormulaireDepotNpi() {
     defaultValues: { email: '', emailConfirmation: '' },
   })
 
+  const askConfirmDepot = (email: string, emailConfirmation: string) => {
+    setPendingEmail({ email, emailConfirmation })
+    setConfirmDepotOpen(true)
+  }
+
   const finishDepot = (email: string, emailConfirmation: string) => {
     deposerNpiMutation.mutate(
       {
@@ -105,11 +116,21 @@ export function FormulaireDepotNpi() {
       },
       {
         onSuccess: (data) => {
+          setConfirmDepotOpen(false)
+          setPendingEmail(null)
           setNumeroDemande(data.numeroDemande)
           setCurrentStep(5)
         },
+        onError: () => {
+          setConfirmDepotOpen(false)
+        },
       },
     )
+  }
+
+  const confirmDepot = () => {
+    if (!pendingEmail) return
+    finishDepot(pendingEmail.email, pendingEmail.emailConfirmation)
   }
 
   const onCnssSubmit = (values: CnssTravailleurStepValues) => {
@@ -194,7 +215,7 @@ export function FormulaireDepotNpi() {
   const npiError = verifierNpi.isError
     ? getApiErrorMessage(
         verifierNpi.error,
-        'Impossible de vérifier le NPI auprès de l\'ANIP. Veuillez réessayer.',
+        'Numéro NPI incorrect',
       )
     : null
 
@@ -316,12 +337,6 @@ export function FormulaireDepotNpi() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {npiError ? (
-              <Alert variant="error" className="mb-4">
-                {npiError}
-              </Alert>
-            ) : null}
-
             <form
               onSubmit={npiForm.handleSubmit(onNpiSubmit)}
               className="space-y-4"
@@ -329,7 +344,7 @@ export function FormulaireDepotNpi() {
             >
               <div className="space-y-1.5">
                 <Label htmlFor="npi" required>
-                  Numéro NPI (16 chiffres)
+                  Numéro NPI
                 </Label>
                 <Input
                   id="npi"
@@ -337,12 +352,16 @@ export function FormulaireDepotNpi() {
                   autoComplete="off"
                   placeholder="1234567890123456"
                   maxLength={16}
-                  hasError={Boolean(npiForm.formState.errors.npi)}
+                  hasError={Boolean(npiForm.formState.errors.npi || npiError)}
                   {...npiForm.register('npi')}
                 />
                 {npiForm.formState.errors.npi ? (
                   <p className="text-sm text-statut-rejetee" role="alert">
                     {npiForm.formState.errors.npi.message}
+                  </p>
+                ) : npiError ? (
+                  <p className="text-sm text-statut-rejetee" role="alert">
+                    {npiError}
                   </p>
                 ) : null}
               </div>
@@ -374,7 +393,7 @@ export function FormulaireDepotNpi() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="size-5 text-cnss-700" aria-hidden="true" />
-              Adresse courriel
+              Courriel
             </CardTitle>
             <CardDescription>
               Un code de vérification sera envoyé à cette adresse.
@@ -394,14 +413,14 @@ export function FormulaireDepotNpi() {
             >
               <div className="space-y-1.5">
                 <Label htmlFor="email" required>
-                  Adresse courriel
+                  Adresse électronique
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  autoComplete="email"
                   hasError={Boolean(emailForm.formState.errors.email)}
                   {...emailForm.register('email')}
+                  {...noClipboardInputProps}
                 />
                 {emailForm.formState.errors.email ? (
                   <p className="text-sm text-statut-rejetee" role="alert">
@@ -412,14 +431,14 @@ export function FormulaireDepotNpi() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="emailConfirmation" required>
-                  Confirmation du courriel
+                  Confirmation de l&apos;adresse électronique
                 </Label>
                 <Input
                   id="emailConfirmation"
                   type="email"
-                  autoComplete="email"
                   hasError={Boolean(emailForm.formState.errors.emailConfirmation)}
                   {...emailForm.register('emailConfirmation')}
+                  {...noClipboardInputProps}
                 />
                 {emailForm.formState.errors.emailConfirmation ? (
                   <p className="text-sm text-statut-rejetee" role="alert">
@@ -547,7 +566,7 @@ export function FormulaireDepotNpi() {
             </CardTitle>
             <CardDescription>
               Vos informations ont été récupérées auprès de l&apos;ANIP. Confirmez
-              l&apos;adresse courriel de la demande.
+              l&apos;adresse électronique de la demande.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -601,8 +620,7 @@ export function FormulaireDepotNpi() {
                   <Button
                     type="button"
                     className="w-full sm:w-auto"
-                    onClick={() => finishDepot(otpEmail, otpEmailConfirmation)}
-                    isLoading={deposerNpiMutation.isPending}
+                    onClick={() => askConfirmDepot(otpEmail, otpEmailConfirmation)}
                   >
                     Oui, utiliser cette adresse
                   </Button>
@@ -622,25 +640,25 @@ export function FormulaireDepotNpi() {
             {useSameEmail === false ? (
               <form
                 onSubmit={finalEmailForm.handleSubmit((values) =>
-                  finishDepot(values.email, values.emailConfirmation),
+                  askConfirmDepot(values.email, values.emailConfirmation),
                 )}
                 className="space-y-4"
                 noValidate
               >
                 <p className="text-sm text-slate-600">
-                  Saisissez l&apos;adresse courriel à utiliser pour les notifications
+                  Saisissez l&apos;adresse électronique à utiliser pour les notifications
                   de dépôt et de décision.
                 </p>
                 <div className="space-y-1.5">
                   <Label htmlFor="finalEmail" required>
-                    Adresse courriel
+                    Adresse électronique
                   </Label>
                   <Input
                     id="finalEmail"
                     type="email"
-                    autoComplete="email"
                     hasError={Boolean(finalEmailForm.formState.errors.email)}
                     {...finalEmailForm.register('email')}
+                    {...noClipboardInputProps}
                   />
                   {finalEmailForm.formState.errors.email ? (
                     <p className="text-sm text-statut-rejetee" role="alert">
@@ -650,16 +668,16 @@ export function FormulaireDepotNpi() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="finalEmailConfirmation" required>
-                    Confirmation du courriel
+                    Confirmation de l&apos;adresse électronique
                   </Label>
                   <Input
                     id="finalEmailConfirmation"
                     type="email"
-                    autoComplete="email"
                     hasError={Boolean(
                       finalEmailForm.formState.errors.emailConfirmation,
                     )}
                     {...finalEmailForm.register('emailConfirmation')}
+                    {...noClipboardInputProps}
                   />
                   {finalEmailForm.formState.errors.emailConfirmation ? (
                     <p className="text-sm text-statut-rejetee" role="alert">
@@ -680,7 +698,6 @@ export function FormulaireDepotNpi() {
                   <Button
                     type="submit"
                     className="w-full sm:w-auto"
-                    isLoading={deposerNpiMutation.isPending}
                   >
                     Déposer ma demande
                   </Button>
@@ -715,23 +732,6 @@ export function FormulaireDepotNpi() {
                 </p>
               </div>
 
-              {anipIdentite ? (
-                <dl className="mt-6 w-full max-w-sm space-y-3 text-left text-sm">
-                  <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
-                    <dt className="shrink-0 text-slate-500">Identité</dt>
-                    <dd className="break-words font-medium text-cnss-900 sm:text-right">
-                      {anipIdentite.prenom} {anipIdentite.nom}
-                    </dd>
-                  </div>
-                  <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
-                    <dt className="shrink-0 text-slate-500">NPI</dt>
-                    <dd className="break-all font-medium text-cnss-900 sm:text-right">
-                      {anipIdentite.npi}
-                    </dd>
-                  </div>
-                </dl>
-              ) : null}
-
               <Link
                 to={`/suivi?numero=${encodeURIComponent(numeroDemande)}`}
                 className="mt-6 inline-flex h-11 w-full max-w-sm items-center justify-center rounded-lg bg-cnss-700 px-4 text-sm font-medium text-white transition-colors hover:bg-cnss-800 sm:h-10 sm:w-auto"
@@ -742,6 +742,21 @@ export function FormulaireDepotNpi() {
           </CardContent>
         </Card>
       ) : null}
+
+      <ConfirmDialog
+        open={confirmDepotOpen}
+        title="Confirmer le dépôt"
+        message="Confirmez-vous le dépôt de votre demande de mise à jour NPI ? Un e-mail de confirmation vous sera envoyé."
+        confirmLabel="Déposer"
+        cancelLabel="Annuler"
+        isLoading={deposerNpiMutation.isPending}
+        onConfirm={confirmDepot}
+        onCancel={() => {
+          if (deposerNpiMutation.isPending) return
+          setConfirmDepotOpen(false)
+          setPendingEmail(null)
+        }}
+      />
     </div>
   )
 }

@@ -8,16 +8,17 @@ import {
 } from '@/api/admin/directions'
 import {
   createUtilisateur,
+  deleteUtilisateur,
   deverrouillerUtilisateur,
   downloadCredentialsDoc,
   downloadInitialCredentialsDoc,
   listUtilisateurOptions,
   listUtilisateurs,
+  resetUtilisateurPassword,
   setUtilisateurStatut,
   updateUtilisateur,
 } from '@/api/admin/utilisateurs'
 import {
-  exportStatistiquesXlsx,
   fetchTableauDeBord,
 } from '@/api/admin/statistiques'
 import { listAuditLogs, fetchAuditLogSummary, exportAuditLogsXlsx } from '@/api/admin/audit'
@@ -149,11 +150,33 @@ export function useUpdateUtilisateur() {
   })
 }
 
+export function useDeleteUtilisateur() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteUtilisateur(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.all })
+    },
+  })
+}
+
 export function useDeverrouillerUtilisateur() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (id: string) => deverrouillerUtilisateur(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.all })
+    },
+  })
+}
+
+export function useResetUtilisateurPassword() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => resetUtilisateurPassword(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.all })
     },
@@ -193,13 +216,6 @@ export function useTableauDeBord(filters?: TableauDeBordFilters) {
   return useQuery({
     queryKey: adminQueryKeys.tableauDeBord(filters),
     queryFn: () => fetchTableauDeBord(filters),
-  })
-}
-
-export function useExportStatistiques() {
-  return useMutation({
-    mutationFn: (filters?: TableauDeBordFilters) =>
-      exportStatistiquesXlsx(filters),
   })
 }
 

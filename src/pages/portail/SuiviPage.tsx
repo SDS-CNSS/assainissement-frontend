@@ -4,11 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useSearchParams } from 'react-router-dom'
 import {
   Building2,
-  CalendarClock,
   FileSearch,
   Hash,
   IdCard,
-  Mail,
   Search,
   UserRound,
 } from 'lucide-react'
@@ -35,13 +33,6 @@ import {
   getSuiviProgressStep,
 } from '@/lib/statutDemande'
 import { cn } from '@/lib/cn'
-
-function formatDate(isoDate: string): string {
-  return new Intl.DateTimeFormat('fr-FR', {
-    dateStyle: 'long',
-    timeStyle: 'short',
-  }).format(new Date(isoDate))
-}
 
 const SUIVI_STEPS = [
   { id: 'depot', label: 'Dépôt' },
@@ -110,7 +101,7 @@ export function SuiviPage() {
     suiviQuery.isError && submittedNumero
       ? getApiErrorMessage(
           suiviQuery.error,
-          'Aucune demande trouvée pour ce numéro.',
+          'Numéro de demande incorrect',
         )
       : null
 
@@ -184,12 +175,7 @@ export function SuiviPage() {
                   <p className="text-sm text-statut-rejetee" role="alert">
                     {errors.numeroDemande.message}
                   </p>
-                ) : (
-                  <p className="text-xs text-slate-500">
-                    Format attendu&nbsp;: 4 lettres + 6 chiffres, dans n&apos;importe quel
-                    ordre (ex.&nbsp;A1B23C45D6)
-                  </p>
-                )}
+                ) : null}
               </div>
             </form>
           </CardContent>
@@ -286,27 +272,11 @@ export function SuiviPage() {
                       label="Numéro CNSS"
                       value={result.numeroCNSS}
                     />
-                    <InfoTile
-                      icon={Mail}
-                      label="Courriel"
-                      value={result.emailMasque}
-                    />
-                    <InfoTile
-                      icon={CalendarClock}
-                      label="Date de dépôt"
-                      value={formatDate(result.dateCreation)}
-                    />
-                    <InfoTile
-                      icon={CalendarClock}
-                      label="Dernière mise à jour"
-                      value={formatDate(result.dateMajStatut)}
-                    />
                     {result.raisonSocialeCNSS ? (
                       <InfoTile
                         icon={Building2}
                         label="Raison sociale CNSS"
                         value={result.raisonSocialeCNSS}
-                        className="sm:col-span-2"
                       />
                     ) : null}
                     {result.ifu ? (

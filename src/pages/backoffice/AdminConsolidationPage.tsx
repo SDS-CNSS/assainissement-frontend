@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Download, Layers } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Label,
   Skeleton,
 } from '@/components/ui'
 import { ConfirmDialog } from '@/components/domain/ConfirmDialog'
@@ -18,14 +19,48 @@ import {
 import { getApiErrorMessage } from '@/api/types'
 import {
   CONFLICT_MOTIF_LABELS,
+  CONSOLIDATION_MODULE_LABELS,
   downloadConsolidationFiles,
   fetchConsolidationPreview,
   runConsolidationExport,
+  type ConsolidationModule,
 } from '@/api/admin/consolidation'
 import { listAuditLogs } from '@/api/admin/audit'
 import { cn } from '@/lib/cn'
 
 const previewKey = ['admin', 'consolidation-preview'] as const
+
+function pickDefaultModule(
+  eligibleEmployeur: number,
+  eligibleTravailleur: number,
+): ConsolidationModule | null {
+  if (eligibleEmployeur > 0 && eligibleTravailleur > 0) return 'LES_DEUX'
+  if (eligibleEmployeur > 0) return 'EMPLOYEUR'
+  if (eligibleTravailleur > 0) return 'TRAVAILLEUR'
+  return null
+}
+
+function selectedEligibleCount(
+  module: ConsolidationModule | null,
+  eligibleEmployeur: number,
+  eligibleTravailleur: number,
+): number {
+  if (module === 'EMPLOYEUR') return eligibleEmployeur
+  if (module === 'TRAVAILLEUR') return eligibleTravailleur
+  if (module === 'LES_DEUX') return eligibleEmployeur + eligibleTravailleur
+  return 0
+}
+
+function selectedConflictCount(
+  module: ConsolidationModule | null,
+  conflictEmployeur: number,
+  conflictTravailleur: number,
+): number {
+  if (module === 'EMPLOYEUR') return conflictEmployeur
+  if (module === 'TRAVAILLEUR') return conflictTravailleur
+  if (module === 'LES_DEUX') return conflictEmployeur + conflictTravailleur
+  return 0
+}
 
 /**
  * Consolidation Admin : écriture IFU/NPI des demandes validées dans le référentiel
@@ -35,6 +70,8 @@ export function AdminConsolidationPage() {
   const queryClient = useQueryClient()
   const { feedback, setFeedback, clearFeedback } = useFlashFeedback()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [selectedModule, setSelectedModule] =
+    useState<ConsolidationModule | null>(null)
 
   const previewQuery = useQuery({
     queryKey: previewKey,
@@ -46,8 +83,35 @@ export function AdminConsolidationPage() {
     queryFn: () => listAuditLogs({ action: 'CONSOLIDATION', page: 1, limit: 5 }),
   })
 
+  const eligibleEmployeur = previewQuery.data?.eligibleEmployeur ?? 0
+  const eligibleTravailleur = previewQuery.data?.eligibleTravailleur ?? 0
+  const conflictEmployeur = previewQuery.data?.conflictEmployeur ?? 0
+  const conflictTravailleur = previewQuery.data?.conflictTravailleur ?? 0
+
+  const availableModules = useMemo(() => {
+    const options: ConsolidationModule[] = []
+    if (eligibleEmployeur > 0) options.push('EMPLOYEUR')
+    if (eligibleTravailleur > 0) options.push('TRAVAILLEUR')
+    if (eligibleEmployeur > 0 && eligibleTravailleur > 0) options.push('LES_DEUX')
+    return options
+  }, [eligibleEmployeur, eligibleTravailleur])
+
+  useEffect(() => {
+    if (!previewQuery.isSuccess) return
+
+    setSelectedModule((current) => {
+      if (current && availableModules.includes(current)) return current
+      return pickDefaultModule(eligibleEmployeur, eligibleTravailleur)
+    })
+  }, [
+    previewQuery.isSuccess,
+    availableModules,
+    eligibleEmployeur,
+    eligibleTravailleur,
+  ])
+
   const consolidateMutation = useMutation({
-    mutationFn: runConsolidationExport,
+    mutationFn: (module: ConsolidationModule) => runConsolidationExport(module),
     onSuccess: async (result) => {
       downloadConsolidationFiles(result.files)
       setConfirmOpen(false)
@@ -88,6 +152,16 @@ export function AdminConsolidationPage() {
   const preview = previewQuery.data
   const eligibleCount = preview?.eligibleCount ?? 0
   const conflictCount = preview?.conflictCount ?? 0
+  const scopedEligibleCount = selectedEligibleCount(
+    selectedModule,
+    eligibleEmployeur,
+    eligibleTravailleur,
+  )
+  const scopedConflictCount = selectedConflictCount(
+    selectedModule,
+    conflictEmployeur,
+    conflictTravailleur,
+  )
 
   const previewError = previewQuery.isError
     ? getApiErrorMessage(
@@ -95,6 +169,11 @@ export function AdminConsolidationPage() {
         'Impossible de charger l\'aperçu de consolidation.',
       )
     : null
+
+  const canConsolidate =
+    selectedModule !== null &&
+    scopedEligibleCount > 0 &&
+    !consolidateMutation.isPending
 
   return (
     <div className="space-y-6">
@@ -104,8 +183,7 @@ export function AdminConsolidationPage() {
         </h2>
         <p className="mt-1 text-slate-600">
           Appliquer les IFU / NPI des demandes validées définitivement dans le
-          référentiel CNSS, puis exporter un Excel Employeurs et un Excel
-          Travailleurs.
+          référentiel CNSS, puis exporter un fichier Excel par module sélectionné.
         </p>
       </div>
 
@@ -117,20 +195,20 @@ export function AdminConsolidationPage() {
         <MetricCard
           label="Éligibles"
           value={eligibleCount}
-          hint="Seront écrits dans le référentiel"
+          hint="Seront consolidés"
           tone="success"
           loading={previewQuery.isLoading}
         />
         <MetricCard
           label="Employeur (IFU)"
-          value={preview?.eligibleEmployeur ?? 0}
+          value={eligibleEmployeur}
           hint="Éligibles module Employeur"
           tone="info"
           loading={previewQuery.isLoading}
         />
         <MetricCard
           label="Travailleur (NPI)"
-          value={preview?.eligibleTravailleur ?? 0}
+          value={eligibleTravailleur}
           hint="Éligibles module Travailleur"
           tone="info"
           loading={previewQuery.isLoading}
@@ -145,10 +223,10 @@ export function AdminConsolidationPage() {
       </div>
 
       <Alert variant="warning">
-          <span className="inline-flex h-full items-center pt-1">
-            Opération irréversible : les lignes consolidées sont figées. Les
-            IFU/NPI validés sont écrits dans le référentiel.
-          </span>
+        <span className="inline-flex h-full items-center pt-1">
+          Opération irréversible : les lignes consolidées sont figées. Les
+          IFU/NPI validés sont écrits dans le référentiel.
+        </span>
       </Alert>
 
       <Card>
@@ -158,19 +236,67 @@ export function AdminConsolidationPage() {
             Lancer la consolidation
           </CardTitle>
           <Button
-            disabled={eligibleCount === 0 || consolidateMutation.isPending}
+            disabled={!canConsolidate}
             onClick={() => setConfirmOpen(true)}
           >
             <Download className="size-4" aria-hidden />
             Consolider et télécharger les Excel
           </Button>
         </CardHeader>
-        <CardContent className="text-sm text-slate-600">
-          {eligibleCount === 0
-            ? conflictCount > 0
-              ? 'Aucune ligne applicable pour le moment. Créez les fiches référentiel manquantes, puis réessayez.'
-              : 'Aucune demande validée en attente de consolidation.'
-            : `${eligibleCount} demande(s) seront appliquée(s) au référentiel (un fichier par module).`}
+        <CardContent className="space-y-4 text-sm text-slate-600">
+          {eligibleCount === 0 ? (
+            conflictCount > 0 ? (
+              <p>
+                Aucune ligne applicable pour le moment. Créez les fiches
+                référentiel manquantes, puis réessayez.
+              </p>
+            ) : (
+              <p>Aucune demande validée en attente de consolidation.</p>
+            )
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="consolidation-module">
+                  Module à consolider
+                </Label>
+                <select
+                  id="consolidation-module"
+                  className={cn(
+                    'flex h-10 w-full max-w-md rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cnss-400 focus-visible:ring-offset-1',
+                  )}
+                  value={selectedModule ?? ''}
+                  onChange={(event) =>
+                    setSelectedModule(
+                      event.target.value as ConsolidationModule,
+                    )
+                  }
+                >
+                  {availableModules.map((module) => (
+                    <option key={module} value={module}>
+                      {CONSOLIDATION_MODULE_LABELS[module]}
+                      {module === 'EMPLOYEUR'
+                        ? ` — ${eligibleEmployeur}`
+                        : module === 'TRAVAILLEUR'
+                          ? ` — ${eligibleTravailleur}`
+                          : ` — ${eligibleEmployeur + eligibleTravailleur}`}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-500">
+                  Seuls les modules disposant de données éligibles sont proposés.
+                </p>
+              </div>
+              <p>
+                {scopedEligibleCount} demande(s) seront appliquée(s) au
+                référentiel
+                {selectedModule
+                  ? ` (${CONSOLIDATION_MODULE_LABELS[selectedModule]})`
+                  : ''}
+                .
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -265,14 +391,20 @@ export function AdminConsolidationPage() {
       <ConfirmDialog
         open={confirmOpen}
         title="Confirmer la consolidation"
-        message={`Consolider ${eligibleCount} demande(s) validée(s) dans le référentiel ?${
-          conflictCount > 0
-            ? ` ${conflictCount} fiche(s) absente(s) resteront non appliquées (aperçu ci-dessous).`
+        message={
+          selectedModule
+            ? `Consolider ${scopedEligibleCount} demande(s) — ${CONSOLIDATION_MODULE_LABELS[selectedModule]} — dans le référentiel ?${
+                scopedConflictCount > 0
+                  ? ` ${scopedConflictCount} fiche(s) absente(s) resteront non appliquées.`
+                  : ''
+              } Un fichier Excel sera téléchargé par module concerné. Cette opération est irréversible.`
             : ''
-        } Un fichier Excel par module (employeurs / travailleurs) sera téléchargé. Cette opération est irréversible.`}
+        }
         confirmLabel="Consolider"
         isLoading={consolidateMutation.isPending}
-        onConfirm={() => consolidateMutation.mutate()}
+        onConfirm={() => {
+          if (selectedModule) consolidateMutation.mutate(selectedModule)
+        }}
         onCancel={() => setConfirmOpen(false)}
       />
     </div>

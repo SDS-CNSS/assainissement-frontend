@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import {
-  BarChart3,
   Building2,
   CheckCircle2,
   ClipboardList,
@@ -19,6 +18,8 @@ import {
 } from '@/components/ui'
 import { getApiErrorMessage } from '@/api/types'
 import { useTableauDeBord } from '@/features/admin/hooks'
+import { useAuthStore } from '@/features/auth/authStore'
+import { userHasRole } from '@/features/auth/types'
 import { cn } from '@/lib/cn'
 
 const ADMIN_SECTIONS = [
@@ -39,12 +40,6 @@ const ADMIN_SECTIONS = [
     description: 'Vue globale des demandes',
     to: '/backoffice/admin/supervision',
     icon: Eye,
-  },
-  {
-    label: 'Statistiques',
-    description: 'Tableau de bord et export Excel',
-    to: '/backoffice/admin/statistiques',
-    icon: BarChart3,
   },
   {
     label: 'Consolidation',
@@ -94,6 +89,8 @@ const STAT_CARDS = [
 ] as const
 
 export function AdminDashboardPage() {
+  const user = useAuthStore((s) => s.user)
+  const isAdmin = userHasRole(user, 'ROLE_ADMIN')
   const statsQuery = useTableauDeBord()
 
   const statsError =
@@ -113,7 +110,9 @@ export function AdminDashboardPage() {
           Tableau de bord
         </h2>
         <p className="mt-1 text-slate-600">
-          Gestion des utilisateurs, directions, supervision et statistiques.
+          {isAdmin
+            ? 'Gestion des utilisateurs, directions, supervision et consolidation.'
+            : 'Vue d’ensemble des demandes d’assainissement.'}
         </p>
       </div>
 
@@ -175,28 +174,30 @@ export function AdminDashboardPage() {
           : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-        {ADMIN_SECTIONS.map((section) => {
-          const Icon = section.icon
-          return (
-            <Link key={section.to} to={section.to} className="group block">
-              <Card className="h-full transition-shadow duration-200 group-hover:shadow-md">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <span className="flex size-10 items-center justify-center rounded-lg bg-cnss-100 text-cnss-700">
-                      <Icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <CardTitle>{section.label}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-600">{section.description}</p>
-                </CardContent>
-              </Card>
-            </Link>
-          )
-        })}
-      </div>
+      {isAdmin ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+          {ADMIN_SECTIONS.map((section) => {
+            const Icon = section.icon
+            return (
+              <Link key={section.to} to={section.to} className="group block">
+                <Card className="h-full transition-shadow duration-200 group-hover:shadow-md">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-10 items-center justify-center rounded-lg bg-cnss-100 text-cnss-700">
+                        <Icon className="size-5" aria-hidden="true" />
+                      </span>
+                      <CardTitle>{section.label}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-slate-600">{section.description}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -4,9 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Download,
   Eye,
+  KeyRound,
   LockOpen,
   Pencil,
   Plus,
+  Trash2,
   UserCheck,
   UserX,
 } from 'lucide-react'
@@ -32,8 +34,10 @@ import { FormSection, FormSideDrawer, SideDrawer } from '@/components/domain/For
 import { TablePagination } from '@/components/domain/TablePagination'
 import {
   useCreateUtilisateur,
+  useDeleteUtilisateur,
   useDeverrouillerUtilisateur,
   useDirectionOptions,
+  useResetUtilisateurPassword,
   useSetUtilisateurStatut,
   useUpdateUtilisateur,
   useUtilisateursList,
@@ -104,7 +108,9 @@ export function AdminUtilisateursPage() {
   const directionsQuery = useDirectionOptions()
   const createUtilisateur = useCreateUtilisateur()
   const updateUtilisateur = useUpdateUtilisateur()
+  const deleteUtilisateur = useDeleteUtilisateur()
   const deverrouiller = useDeverrouillerUtilisateur()
+  const resetPassword = useResetUtilisateurPassword()
   const setUtilisateurStatut = useSetUtilisateurStatut()
   const currentUser = useAuthStore((state) => state.user)
 
@@ -112,7 +118,13 @@ export function AdminUtilisateursPage() {
   const [editTarget, setEditTarget] = useState<UtilisateurListItem | null>(null)
   const [detailTarget, setDetailTarget] = useState<UtilisateurListItem | null>(null)
   const [statutTarget, setStatutTarget] = useState<UtilisateurListItem | null>(null)
-  const [createdUser, setCreatedUser] = useState<CreateUtilisateurResponse | null>(null)
+  const [resetTarget, setResetTarget] = useState<UtilisateurListItem | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<UtilisateurListItem | null>(null)
+  const [credentialsResult, setCredentialsResult] =
+    useState<CreateUtilisateurResponse | null>(null)
+  const [credentialsContext, setCredentialsContext] = useState<
+    'create' | 'reset' | null
+  >(null)
   const [isDownloadingDoc, setIsDownloadingDoc] = useState(false)
   const { feedback, setFeedback, clearFeedback } = useFlashFeedback()
 
@@ -143,13 +155,21 @@ export function AdminUtilisateursPage() {
       moduleAffecte: 'EMPLOYEUR',
       directionId: directions[0]?.id ?? '',
     })
-    setCreatedUser(null)
+    setCredentialsResult(null)
+    setCredentialsContext(null)
     setCreateOpen(true)
   }
 
   const closeCreate = () => {
     setCreateOpen(false)
-    setCreatedUser(null)
+    setCredentialsResult(null)
+    setCredentialsContext(null)
+  }
+
+  const closeCredentialsDrawer = () => {
+    setCredentialsResult(null)
+    setCredentialsContext(null)
+    setCreateOpen(false)
   }
 
   const openEdit = (utilisateur: UtilisateurListItem) => {
@@ -176,7 +196,8 @@ export function AdminUtilisateursPage() {
         prenom: values.prenom.trim(),
         identifiant,
       })
-      setCreatedUser(result)
+      setCredentialsResult(result)
+      setCredentialsContext('create')
       setFeedback({
         variant: 'success',
         message: 'Utilisateur créé avec succès.',
@@ -193,16 +214,16 @@ export function AdminUtilisateursPage() {
   })
 
   const handleDownloadCredentials = async () => {
-    if (!createdUser) return
+    if (!credentialsResult) return
 
     setIsDownloadingDoc(true)
     try {
       await downloadConnectionInfoDocx({
-        nom: createdUser.utilisateur.nom,
-        prenom: createdUser.utilisateur.prenom,
-        login: createdUser.utilisateur.identifiant,
-        password: createdUser.motDePasseTemporaire,
-        structure: createdUser.utilisateur.directionNom,
+        nom: credentialsResult.utilisateur.nom,
+        prenom: credentialsResult.utilisateur.prenom,
+        login: credentialsResult.utilisateur.identifiant,
+        password: credentialsResult.motDePasseTemporaire,
+        structure: credentialsResult.utilisateur.directionNom,
       })
     } catch {
       setFeedback({
@@ -253,6 +274,50 @@ export function AdminUtilisateursPage() {
       setFeedback({
         variant: 'error',
         message: getApiErrorMessage(error, 'Le déverrouillage a échoué.'),
+      })
+    }
+  }
+
+  const handleConfirmResetPassword = async () => {
+    if (!resetTarget) return
+
+    try {
+      const result = await resetPassword.mutateAsync(resetTarget.id)
+      setResetTarget(null)
+      setCredentialsResult(result)
+      setCredentialsContext('reset')
+      setFeedback({
+        variant: 'success',
+        message: `Mot de passe de ${result.utilisateur.identifiant} réinitialisé.`,
+      })
+    } catch (error) {
+      setFeedback({
+        variant: 'error',
+        message: getApiErrorMessage(
+          error,
+          'La réinitialisation du mot de passe a échoué.',
+        ),
+      })
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+
+    try {
+      await deleteUtilisateur.mutateAsync(deleteTarget.id)
+      setFeedback({
+        variant: 'success',
+        message: `Compte ${deleteTarget.identifiant} supprimé.`,
+      })
+      setDeleteTarget(null)
+    } catch (error) {
+      setFeedback({
+        variant: 'error',
+        message: getApiErrorMessage(
+          error,
+          'La suppression de l\'utilisateur a échoué.',
+        ),
       })
     }
   }
@@ -419,6 +484,15 @@ export function AdminUtilisateursPage() {
                           >
                             <Pencil className="size-5" aria-hidden="true" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="size-10 px-0"
+                            aria-label={`Réinitialiser le mot de passe de ${utilisateur.identifiant}`}
+                            onClick={() => setResetTarget(utilisateur)}
+                          >
+                            <KeyRound className="size-5" aria-hidden="true" />
+                          </Button>
                           {utilisateur.isActive ? (
                             currentUser?.id !== utilisateur.id ? (
                               <Button
@@ -454,6 +528,17 @@ export function AdminUtilisateursPage() {
                               <LockOpen className="size-5" aria-hidden="true" />
                             </Button>
                           ) : null}
+                          {currentUser?.id !== utilisateur.id ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="size-10 px-0 text-statut-rejetee hover:text-red-700"
+                              aria-label={`Supprimer ${utilisateur.identifiant}`}
+                              onClick={() => setDeleteTarget(utilisateur)}
+                            >
+                              <Trash2 className="size-5" aria-hidden="true" />
+                            </Button>
+                          ) : null}
                         </div>
                       </td>
                     </tr>
@@ -476,47 +561,56 @@ export function AdminUtilisateursPage() {
         </CardContent>
       </Card>
 
-      {createOpen ? (
-        createdUser ? (
-          <SideDrawer
-            open={createOpen}
-            title="Utilisateur créé"
-            description="Téléchargez le document d'informations de connexion pour le transmettre de manière sécurisée à l'utilisateur."
-            onClose={closeCreate}
-            footer={
-              <div className="flex justify-end gap-3">
-                <Button type="button" variant="secondary" onClick={closeCreate}>
-                  Fermer
-                </Button>
-                <Button
-                  type="button"
-                  isLoading={isDownloadingDoc}
-                  onClick={handleDownloadCredentials}
-                >
-                  <Download className="size-4" aria-hidden="true" />
-                  Télécharger le document
-                </Button>
-              </div>
-            }
-          >
-            <Alert variant="success">
-              Le compte a été créé avec succès. Les identifiants de connexion
-              figurent uniquement dans le document téléchargeable.
-            </Alert>
-          </SideDrawer>
-        ) : (
-          <FormSideDrawer
-            open={createOpen}
-            title="Nouvel utilisateur"
-            description="Créez un compte agent CNSS avec identifiant, rôle et direction d'affectation."
-            submitLabel="Créer l'utilisateur"
-            isLoading={createUtilisateur.isPending}
-            onClose={closeCreate}
-            onSubmit={handleCreate}
-          >
-            <CreateFormFields form={createForm} directions={directions} />
-          </FormSideDrawer>
-        )
+      {createOpen && credentialsContext !== 'create' ? (
+        <FormSideDrawer
+          open={createOpen}
+          title="Nouvel utilisateur"
+          description="Créez un compte agent CNSS avec identifiant, rôle et direction d'affectation."
+          submitLabel="Créer l'utilisateur"
+          isLoading={createUtilisateur.isPending}
+          onClose={closeCreate}
+          onSubmit={handleCreate}
+        >
+          <CreateFormFields form={createForm} directions={directions} />
+        </FormSideDrawer>
+      ) : null}
+
+      {credentialsResult && credentialsContext ? (
+        <SideDrawer
+          open
+          title={
+            credentialsContext === 'create'
+              ? 'Utilisateur créé'
+              : 'Mot de passe réinitialisé'
+          }
+          description="Téléchargez le document d'informations de connexion pour le transmettre de manière sécurisée à l'utilisateur."
+          onClose={closeCredentialsDrawer}
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={closeCredentialsDrawer}
+              >
+                Fermer
+              </Button>
+              <Button
+                type="button"
+                isLoading={isDownloadingDoc}
+                onClick={handleDownloadCredentials}
+              >
+                <Download className="size-4" aria-hidden="true" />
+                Télécharger le document
+              </Button>
+            </div>
+          }
+        >
+          <Alert variant="success">
+            {credentialsContext === 'create'
+              ? 'Le compte a été créé avec succès. Les identifiants de connexion figurent uniquement dans le document téléchargeable.'
+              : 'Le mot de passe temporaire a été généré. Les nouveaux identifiants figurent uniquement dans le document téléchargeable. L\'utilisateur devra le changer à sa prochaine connexion.'}
+          </Alert>
+        </SideDrawer>
       ) : null}
 
       {editTarget ? (
@@ -562,6 +656,35 @@ export function AdminUtilisateursPage() {
         isLoading={setUtilisateurStatut.isPending}
         onCancel={() => setStatutTarget(null)}
         onConfirm={handleConfirmStatut}
+      />
+
+      <ConfirmDialog
+        open={Boolean(resetTarget)}
+        title="Réinitialiser le mot de passe"
+        message={
+          resetTarget
+            ? `Confirmez-vous la réinitialisation du mot de passe de ${resetTarget.identifiant} ? Un mot de passe temporaire sera généré et l'utilisateur devra le changer à sa prochaine connexion.`
+            : ''
+        }
+        confirmLabel="Réinitialiser"
+        isLoading={resetPassword.isPending}
+        onCancel={() => setResetTarget(null)}
+        onConfirm={handleConfirmResetPassword}
+      />
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Supprimer l'utilisateur"
+        message={
+          deleteTarget
+            ? `Supprimer définitivement le compte ${deleteTarget.identifiant} ? Cette action est irréversible. L'historique et l'audit liés seront conservés.`
+            : ''
+        }
+        confirmLabel="Supprimer"
+        buttonType="danger"
+        isLoading={deleteUtilisateur.isPending}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   )
@@ -733,6 +856,7 @@ function RoleModuleDirectionFields({
       >
         <option value="AGENT_VALIDATION">Agent 1</option>
         <option value="CHEF_VALIDATION">Agent 2</option>
+        <option value="CONTROLEUR">Contrôleur</option>
         <option value="SUPERVISEUR">Superviseur</option>
         <option value="ADMINISTRATEUR">Administrateur</option>
       </SelectField>
