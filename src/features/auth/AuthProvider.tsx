@@ -8,11 +8,25 @@ interface AuthProviderProps {
 }
 
 /**
- * Restaure la session au chargement via le refresh token HttpOnly (section 6).
+ * Routes où une session agent peut être restaurée via le cookie refresh.
+ * Le portail public (citoyen) n'en a pas besoin.
+ */
+export function shouldRestoreSessionOnPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/backoffice') ||
+    pathname === '/login' ||
+    pathname.startsWith('/changer-mot-de-passe')
+  )
+}
+
+/**
+ * Restaure la session au chargement via le refresh token HttpOnly (section 6),
+ * uniquement sur les écrans agent (back-office / login).
  * L'access token reste en mémoire uniquement, mais est réémis après un F5.
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [isBootstrapping, setIsBootstrapping] = useState(true)
+  const needsRestore = shouldRestoreSessionOnPath(window.location.pathname)
+  const [isBootstrapping, setIsBootstrapping] = useState(needsRestore)
   const setSession = useAuthStore((state) => state.setSession)
   const isAuthenticated = useAuthStore(
     (state) => state.accessToken !== null && state.user !== null,
@@ -22,6 +36,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let cancelled = false
 
     async function bootstrapAuth() {
+      if (!needsRestore) {
+        if (!cancelled) {
+          setIsBootstrapping(false)
+        }
+        return
+      }
+
       if (isAuthenticated) {
         if (!cancelled) {
           setIsBootstrapping(false)
@@ -45,7 +66,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, setSession])
+  }, [isAuthenticated, needsRestore, setSession])
 
   if (isBootstrapping) {
     return (

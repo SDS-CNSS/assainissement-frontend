@@ -258,6 +258,7 @@ export function SuiviPage() {
                   <Stepper
                     steps={[...SUIVI_STEPS]}
                     currentStep={getSuiviProgressStep(result.statut)}
+                    checkCurrentStep
                     className="px-1"
                   />
                 </div>

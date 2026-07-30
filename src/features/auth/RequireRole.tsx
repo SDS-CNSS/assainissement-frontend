@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { restoreSession } from '@/api/auth'
+import { Spinner } from '@/components/ui'
 import {
   selectIsAuthenticated,
   selectMustChangePassword,
@@ -7,9 +10,60 @@ import {
 import type { SymfonyRole } from './types'
 import { userHasRole } from './types'
 
+function SessionBootstrapSpinner() {
+  return (
+    <div className="flex min-h-svh items-center justify-center bg-slate-50">
+      <Spinner
+        size="lg"
+        className="text-cnss-700"
+        label="Restauration de la session…"
+      />
+    </div>
+  )
+}
+
+/**
+ * Tente de restaurer la session (cookie refresh) si l'access token
+ * n'est pas encore en mémoire — utile après navigation SPA depuis le portail public.
+ */
+function useRestoreSessionIfNeeded(enabled: boolean): boolean {
+  const isAuthenticated = useAuthStore(selectIsAuthenticated)
+  const setSession = useAuthStore((state) => state.setSession)
+  const [isChecking, setIsChecking] = useState(enabled && !isAuthenticated)
+
+  useEffect(() => {
+    if (!enabled || isAuthenticated) {
+      setIsChecking(false)
+      return
+    }
+
+    let cancelled = false
+    setIsChecking(true)
+
+    void restoreSession().then((session) => {
+      if (cancelled) return
+      if (session) {
+        setSession(session.accessToken, session.user)
+      }
+      setIsChecking(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [enabled, isAuthenticated, setSession])
+
+  return isChecking
+}
+
 export function RequireAuth() {
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const location = useLocation()
+  const isChecking = useRestoreSessionIfNeeded(true)
+
+  if (isChecking) {
+    return <SessionBootstrapSpinner />
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />
@@ -53,6 +107,12 @@ export function RequireRole({ roles }: RequireRoleProps) {
 export function GuestOnly() {
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const user = useAuthStore((s) => s.user)
+  // Depuis le portail public (SPA), le cookie peut encore être valide.
+  const isChecking = useRestoreSessionIfNeeded(true)
+
+  if (isChecking) {
+    return <SessionBootstrapSpinner />
+  }
 
   if (isAuthenticated && user) {
     if (user.isFirstConnexion) {
