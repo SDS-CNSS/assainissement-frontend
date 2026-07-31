@@ -240,13 +240,17 @@ export function AdminUtilisateursPage() {
     if (!editTarget) return
 
     try {
+      const identifiant =
+        values.identifiant.trim() ||
+        generateIdentifiantFromName(values.prenom, values.nom)
+
       await updateUtilisateur.mutateAsync({
         id: editTarget.id,
         payload: {
           ...values,
           nom: values.nom.trim(),
           prenom: values.prenom.trim(),
-          identifiant: values.identifiant.trim(),
+          identifiant,
           moduleAffecte:
             values.role === 'SUPERVISEUR' ? null : values.moduleAffecte ?? null,
         },
@@ -254,7 +258,7 @@ export function AdminUtilisateursPage() {
       setEditTarget(null)
       setFeedback({
         variant: 'success',
-        message: `Utilisateur ${values.identifiant.trim()} mis à jour.`,
+        message: `Utilisateur ${identifiant} mis à jour.`,
       })
     } catch (error) {
       setFeedback({
@@ -773,6 +777,14 @@ function EditFormFields({
     setValue,
     formState: { errors },
   } = form
+
+  const prenom = useWatch({ control, name: 'prenom' })
+  const nom = useWatch({ control, name: 'nom' })
+
+  useEffect(() => {
+    const generated = generateIdentifiantFromName(prenom ?? '', nom ?? '')
+    setValue('identifiant', generated, { shouldValidate: Boolean(generated) })
+  }, [nom, prenom, setValue])
 
   return (
     <div className="space-y-6">
