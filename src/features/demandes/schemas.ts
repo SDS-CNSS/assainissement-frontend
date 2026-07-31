@@ -113,7 +113,7 @@ export const suiviSchema = z.object({
     .transform((value) => value.trim().toUpperCase())
     .refine(
       isNumeroDemandeFormat,
-      'Le numéro de demande doit comporter exactement 4 lettres et 6 chiffres (10 caractères, ex. A1B23C45D6).',
+      'Le numéro de demande n\'est pas valide.',
     ),
 })
 

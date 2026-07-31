@@ -47,8 +47,8 @@ const STAT_CARDS = [
   },
   {
     key: 'valideesDefinitivement' as const,
-    label: 'Validées',
-    hint: 'Décision définitive Agent 2',
+    label: 'Validée(s)',
+    hint: 'Décision définitive',
     icon: CheckCircle2,
     iconClass: 'bg-emerald-100 text-emerald-700',
     valueClass: 'text-emerald-800',

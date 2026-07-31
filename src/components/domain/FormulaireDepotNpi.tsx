@@ -333,7 +333,7 @@ export function FormulaireDepotNpi() {
           <CardHeader>
             <CardTitle>Numéro NPI</CardTitle>
             <CardDescription>
-              Saisissez votre NPI pour vérification auprès de l&apos;ANIP.
+              Saisissez votre NPI pour vérification.
             </CardDescription>
           </CardHeader>
           <CardContent>
