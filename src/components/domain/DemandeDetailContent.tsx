@@ -3,7 +3,6 @@ import {
   CalendarDays,
   Hash,
   IdCard,
-  Mail,
   Phone,
   UserRound,
 } from 'lucide-react'
@@ -34,12 +33,13 @@ export function DemandeDetailContent({ demande }: { demande: DemandeDetail }) {
             value={demande.numeroCNSS}
             icon={Hash}
           />
-          <DetailItem
-            label="E-mail de contact"
-            value={demande.email}
-            icon={Mail}
-            className="sm:col-span-2"
-          />
+          {demande.numeroApiex ? (
+            <DetailItem
+              label="Numéro APIEX"
+              value={demande.numeroApiex}
+              icon={Hash}
+            />
+          ) : null}
           {demande.raisonSocialeCNSS ? (
             <DetailItem
               label="Raison sociale CNSS"

@@ -18,6 +18,7 @@ export interface DemandeListItem {
   npi?: string
   nomAnip?: string
   prenomAnip?: string
+  numeroApiex?: string
 }
 
 export interface DemandeListResponse {
@@ -43,6 +44,7 @@ export interface DemandeDetail {
   nomAnip?: string
   prenomAnip?: string
   telephoneAnip?: string
+  numeroApiex?: string
 }
 
 export interface HistoriqueUtilisateur {

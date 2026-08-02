@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Check, FileText, History, X } from 'lucide-react'
+import { ArrowLeft, Check, Copy, FileText, History, X } from 'lucide-react'
 import { Alert, Button, CardContent, Skeleton } from '@/components/ui'
 import {
   DemandeDetailContent,
@@ -121,6 +121,36 @@ function resolveActionNiveau(
  * UC-11 / RG-11 : détail + historique sur une même page (onglets).
  * UC-06 à UC-10 + arbitrage Contrôleur : actions Valider / Rejeter selon rôle et statut.
  */
+function CopyEmailButton({ email }: { email: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(email)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Navigateur / permissions : pas de feedback si la copie échoue.
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex size-6 shrink-0 items-center justify-center rounded text-slate-500 transition-colors hover:bg-slate-100 hover:text-cnss-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cnss-500/40"
+      aria-label={copied ? 'E-mail copié' : `Copier l'adresse ${email}`}
+      title={copied ? 'Copié' : 'Copier l\'e-mail'}
+    >
+      {copied ? (
+        <Check className="size-3.5 text-statut-validee" aria-hidden="true" />
+      ) : (
+        <Copy className="size-3.5" aria-hidden="true" />
+      )}
+    </button>
+  )
+}
+
 export function DemandeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -290,8 +320,15 @@ export function DemandeDetailPage() {
           ) : demande ? (
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="font-mono text-lg font-bold tracking-wide text-cnss-900 sm:text-xl">
-                  {demande.numeroDemande}
+                <p className="flex flex-wrap items-center gap-x-1.5 font-mono text-lg font-bold tracking-wide text-cnss-900 sm:text-xl">
+                  <span>{demande.numeroDemande}</span>
+                  <span className="font-sans text-sm font-normal text-slate-400">
+                    -
+                  </span>
+                  <span className="inline-flex items-center gap-1 font-sans text-sm font-normal text-slate-600">
+                    {demande.email}
+                    <CopyEmailButton email={demande.email} />
+                  </span>
                 </p>
                 <p className="mt-0.5 text-sm text-slate-500">
                   {MODULE_LABELS[demande.module]}

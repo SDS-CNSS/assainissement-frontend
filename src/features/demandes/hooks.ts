@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
+  demanderOtpIfu,
   demanderOtpNpi,
   deposerNpi,
   depotIfu,
@@ -39,6 +40,12 @@ export function useVerifierIfuDgi() {
 export function useDepotIfu() {
   return useMutation({
     mutationFn: (payload: DepotIfuPayload) => depotIfu(payload),
+  })
+}
+
+export function useDemanderOtpIfu() {
+  return useMutation({
+    mutationFn: demanderOtpIfu,
   })
 }
 

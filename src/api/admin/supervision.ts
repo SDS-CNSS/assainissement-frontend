@@ -19,6 +19,7 @@ interface DemandeListItemRaw {
   npi?: string
   nomAnip?: string
   prenomAnip?: string
+  numeroApiex?: string
 }
 
 interface SupervisionRawResponse {
@@ -43,6 +44,7 @@ function mapDemandeItem(raw: DemandeListItemRaw): DemandeListItem {
     npi: raw.npi,
     nomAnip: raw.nomAnip,
     prenomAnip: raw.prenomAnip,
+    numeroApiex: raw.numeroApiex,
   }
 }
 

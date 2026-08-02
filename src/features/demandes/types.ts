@@ -7,6 +7,9 @@ export interface VerificationCnssResponse {
   raisonSociale?: string
   nom?: string
   prenom?: string
+  /** Numéro CNSS canonique du référentiel (même si saisie APIEX). */
+  numeroCNSS?: string
+  numeroApiex?: string
 }
 
 export interface IfuDgiVerificationResponse {
@@ -66,11 +69,17 @@ export interface DeposerNpiPayload {
   emailConfirmation: string
 }
 
-export interface DepotIfuPayload {
+export interface DemanderOtpIfuPayload {
+  action: 'demander_otp'
   numeroCNSS: string
   ifu: string
   email: string
   emailConfirmation: string
+}
+
+export interface DepotIfuPayload {
+  sessionToken: string
+  otpCode: string
 }
 
 export interface SuiviDemandeResponse {
@@ -87,4 +96,5 @@ export interface SuiviDemandeResponse {
   npi?: string
   nomAnip?: string
   prenomAnip?: string
+  numeroApiex?: string
 }

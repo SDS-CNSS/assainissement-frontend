@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
-import { Building2, CheckCircle2 } from 'lucide-react'
+import { Building2, CheckCircle2, Mail } from 'lucide-react'
 import {
   Alert,
   Button,
@@ -22,13 +22,17 @@ import {
   cnssEmployeurStepSchema,
   ifuEmailStepSchema,
   ifuStepSchema,
+  otpStepSchema,
   type CnssEmployeurStepValues,
   type IfuEmailStepValues,
   type IfuStepValues,
+  type OtpStepValues,
 } from '@/features/demandes/schemas'
 import {
+  useDemanderOtpIfu,
   useDepotIfu,
   useVerifierIfuDgi,
+  useVerifierOtp,
   useVerifyEmployeurCnss,
 } from '@/features/demandes/hooks'
 import { maskEmail } from '@/lib/maskEmail'
@@ -37,6 +41,7 @@ const STEPS = [
   { id: 'cnss', label: 'CNSS' },
   { id: 'ifu', label: 'IFU' },
   { id: 'email', label: 'Courriel' },
+  { id: 'otp', label: 'OTP' },
   { id: 'confirmation', label: 'Confirmation' },
 ] as const
 
@@ -46,15 +51,19 @@ export function FormulaireDepotIfu() {
   const [raisonSocialeCnss, setRaisonSocialeCnss] = useState('')
   const [ifu, setIfu] = useState('')
   const [raisonSocialeDgi, setRaisonSocialeDgi] = useState('')
+  const [otpEmail, setOtpEmail] = useState('')
+  const [otpEmailConfirmation, setOtpEmailConfirmation] = useState('')
+  const [sessionToken, setSessionToken] = useState('')
+  const [emailMasque, setEmailMasque] = useState('')
+  const [otpCode, setOtpCode] = useState('')
   const [numeroDemande, setNumeroDemande] = useState('')
   const [emailDepot, setEmailDepot] = useState('')
   const [confirmDepotOpen, setConfirmDepotOpen] = useState(false)
-  const [pendingEmail, setPendingEmail] = useState<IfuEmailStepValues | null>(
-    null,
-  )
 
   const verifyCnss = useVerifyEmployeurCnss()
   const verifierIfu = useVerifierIfuDgi()
+  const demanderOtp = useDemanderOtpIfu()
+  const verifierOtpMutation = useVerifierOtp()
   const depotIfuMutation = useDepotIfu()
 
   const cnssForm = useForm<CnssEmployeurStepValues>({
@@ -72,10 +81,16 @@ export function FormulaireDepotIfu() {
     defaultValues: { email: '', emailConfirmation: '' },
   })
 
+  const otpForm = useForm<OtpStepValues>({
+    resolver: zodResolver(otpStepSchema),
+    defaultValues: { code: '' },
+  })
+
   const onCnssSubmit = (values: CnssEmployeurStepValues) => {
     verifyCnss.mutate(values.numeroCNSS, {
       onSuccess: (data) => {
-        setNumeroCNSS(values.numeroCNSS)
+        // Toujours le num_cnss canonique (même si l'utilisateur a saisi l'APIEX).
+        setNumeroCNSS(data.numeroCNSS ?? values.numeroCNSS)
         setRaisonSocialeCnss(data.raisonSociale ?? '')
         setCurrentStep(1)
       },
@@ -92,30 +107,61 @@ export function FormulaireDepotIfu() {
     })
   }
 
-  const onEmailSubmit = (values: IfuEmailStepValues) => {
-    setPendingEmail(values)
-    setConfirmDepotOpen(true)
-  }
-
-  const confirmDepot = () => {
-    if (!pendingEmail) return
-
-    const emailValues = pendingEmail
-
-    depotIfuMutation.mutate(
+  const sendOtp = (values: IfuEmailStepValues, goNext: boolean) => {
+    demanderOtp.mutate(
       {
         numeroCNSS,
         ifu,
-        email: emailValues.email,
-        emailConfirmation: emailValues.emailConfirmation,
+        email: values.email,
+        emailConfirmation: values.emailConfirmation,
+      },
+      {
+        onSuccess: (data) => {
+          setOtpEmail(values.email)
+          setOtpEmailConfirmation(values.emailConfirmation)
+          setSessionToken(data.sessionToken)
+          setEmailMasque(data.emailMasque)
+          otpForm.reset({ code: '' })
+          if (goNext) {
+            setCurrentStep(3)
+          }
+        },
+      },
+    )
+  }
+
+  const onEmailSubmit = (values: IfuEmailStepValues) => {
+    sendOtp(values, true)
+  }
+
+  const onResendOtp = () => {
+    sendOtp({ email: otpEmail, emailConfirmation: otpEmailConfirmation }, false)
+  }
+
+  const onOtpSubmit = (values: OtpStepValues) => {
+    verifierOtpMutation.mutate(
+      { sessionToken, code: values.code },
+      {
+        onSuccess: () => {
+          setOtpCode(values.code)
+          setConfirmDepotOpen(true)
+        },
+      },
+    )
+  }
+
+  const confirmDepot = () => {
+    depotIfuMutation.mutate(
+      {
+        sessionToken,
+        otpCode,
       },
       {
         onSuccess: (data) => {
           setConfirmDepotOpen(false)
-          setPendingEmail(null)
           setNumeroDemande(data.numeroDemande)
-          setEmailDepot(emailValues.email)
-          setCurrentStep(3)
+          setEmailDepot(otpEmail)
+          setCurrentStep(4)
         },
         onError: () => {
           setConfirmDepotOpen(false)
@@ -135,6 +181,20 @@ export function FormulaireDepotIfu() {
     ? getApiErrorMessage(
         verifierIfu.error,
         'Numéro IFU incorrect',
+      )
+    : null
+
+  const otpRequestError = demanderOtp.isError
+    ? getApiErrorMessage(
+        demanderOtp.error,
+        'Impossible d\'envoyer le code OTP. Veuillez réessayer.',
+      )
+    : null
+
+  const otpVerifyError = verifierOtpMutation.isError
+    ? getApiErrorMessage(
+        verifierOtpMutation.error,
+        'Code OTP incorrect ou expiré. Veuillez réessayer.',
       )
     : null
 
@@ -210,8 +270,7 @@ export function FormulaireDepotIfu() {
             <CardTitle>Identifiant IFU</CardTitle>
             <CardDescription>
               Employeur identifié :{' '}
-              <span className="font-medium text-cnss-800">{raisonSocialeCnss}</span>{' '}
-              (CNSS {numeroCNSS})
+              <span className="font-medium text-cnss-800">{raisonSocialeCnss}</span>
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -276,9 +335,9 @@ export function FormulaireDepotIfu() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {depotError ? (
+            {otpRequestError ? (
               <Alert variant="error" className="mb-4">
-                {depotError}
+                {otpRequestError}
               </Alert>
             ) : null}
 
@@ -329,14 +388,16 @@ export function FormulaireDepotIfu() {
                   variant="outline"
                   className="w-full sm:w-auto"
                   onClick={() => setCurrentStep(1)}
+                  disabled={demanderOtp.isPending}
                 >
                   Retour
                 </Button>
                 <Button
                   type="submit"
                   className="w-full sm:w-auto"
+                  isLoading={demanderOtp.isPending}
                 >
-                  Déposer ma demande
+                  Envoyer le code
                 </Button>
               </div>
             </form>
@@ -345,6 +406,104 @@ export function FormulaireDepotIfu() {
       ) : null}
 
       {currentStep === 3 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="size-5 text-cnss-700" aria-hidden="true" />
+              Vérification OTP
+            </CardTitle>
+            <CardDescription>
+              Un code à 6 chiffres a été envoyé à{' '}
+              <span className="font-medium text-cnss-800">{emailMasque}</span>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Alert variant="info" className="mb-4">
+              Le code est valable 5 minutes. Après 3 tentatives incorrectes, vous
+              devrez relancer la demande.
+            </Alert>
+
+            {otpRequestError ? (
+              <Alert variant="error" className="mb-4">
+                {otpRequestError}
+              </Alert>
+            ) : null}
+
+            {otpVerifyError ? (
+              <Alert variant="error" className="mb-4">
+                {otpVerifyError}
+              </Alert>
+            ) : null}
+
+            {depotError ? (
+              <Alert variant="error" className="mb-4">
+                {depotError}
+              </Alert>
+            ) : null}
+
+            <form
+              onSubmit={otpForm.handleSubmit(onOtpSubmit)}
+              className="space-y-4"
+              noValidate
+            >
+              <div className="space-y-1.5">
+                <Label htmlFor="code" required>
+                  Code OTP
+                </Label>
+                <Input
+                  id="code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="000000"
+                  maxLength={6}
+                  hasError={Boolean(otpForm.formState.errors.code)}
+                  {...otpForm.register('code')}
+                />
+                {otpForm.formState.errors.code ? (
+                  <p className="text-sm text-statut-rejetee" role="alert">
+                    {otpForm.formState.errors.code.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  onClick={() => setCurrentStep(2)}
+                  disabled={verifierOtpMutation.isPending}
+                >
+                  Retour
+                </Button>
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  isLoading={verifierOtpMutation.isPending}
+                >
+                  Vérifier le code
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full sm:w-auto"
+                  onClick={onResendOtp}
+                  disabled={
+                    demanderOtp.isPending ||
+                    verifierOtpMutation.isPending ||
+                    !otpEmail
+                  }
+                  isLoading={demanderOtp.isPending}
+                >
+                  Renvoyer le code
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {currentStep === 4 ? (
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center py-4 text-center">
@@ -387,7 +546,7 @@ export function FormulaireDepotIfu() {
       <ConfirmDialog
         open={confirmDepotOpen}
         title="Confirmer le dépôt"
-        message="Confirmez-vous le dépôt de votre demande de mise à jour IFU ? Un e-mail de confirmation vous sera envoyé."
+        message="Confirmez-vous le dépôt de votre demande de mise à jour IFU ? Un e-mail de confirmation vous sera envoyé à l'adresse vérifiée."
         confirmLabel="Déposer"
         cancelLabel="Annuler"
         isLoading={depotIfuMutation.isPending}
@@ -395,7 +554,6 @@ export function FormulaireDepotIfu() {
         onCancel={() => {
           if (depotIfuMutation.isPending) return
           setConfirmDepotOpen(false)
-          setPendingEmail(null)
         }}
       />
     </div>

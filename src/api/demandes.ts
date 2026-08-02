@@ -1,4 +1,5 @@
 import type {
+  DemanderOtpIfuPayload,
   DemanderOtpNpiPayload,
   DepotDemandeResponse,
   DepotIfuPayload,
@@ -12,6 +13,16 @@ import type {
   VerifierOtpPayload,
 } from '@/features/demandes/types'
 import { apiClient } from './client'
+
+export async function demanderOtpIfu(
+  payload: Omit<DemanderOtpIfuPayload, 'action'>,
+): Promise<OtpInitResponse> {
+  const { data } = await apiClient.post<OtpInitResponse>('/demandes/ifu', {
+    ...payload,
+    action: 'demander_otp',
+  })
+  return data
+}
 
 export async function depotIfu(
   payload: DepotIfuPayload,
