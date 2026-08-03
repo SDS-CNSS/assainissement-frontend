@@ -23,7 +23,7 @@ export const cnssEmployeurStepSchema = z.object({
   numeroCNSS: z
     .string()
     .min(1, 'Veuillez saisir votre numéro CNSS.')
-    .regex(/^\d+$/, 'Le numéro CNSS ne doit contenir que des chiffres.'),
+    .regex(/^\d+$/, 'Le numéro CNSS est invalide.'),
 })
 
 /** RG-15 : IFU = exactement 13 chiffres. */
@@ -31,7 +31,7 @@ export const ifuStepSchema = z.object({
   ifu: z
     .string()
     .min(1, 'Numéro IFU incorrect')
-    .regex(/^\d{13}$/, 'Numéro IFU incorrect'),
+    .regex(/^\d{13}$/, 'Numéro IFU incorrect.'),
 })
 
 /** RG-07 : double saisie courriel strictement identique. */
@@ -58,7 +58,7 @@ export const cnssTravailleurStepSchema = z.object({
   numeroCNSS: z
     .string()
     .min(1, 'Veuillez saisir votre numéro CNSS.')
-    .regex(/^\d+$/, 'Le numéro CNSS ne doit contenir que des chiffres.'),
+    .regex(/^\d+$/, 'Le numéro CNSS est invalide.'),
 })
 
 export const npiStepSchema = z.object({
@@ -73,7 +73,7 @@ export const otpStepSchema = z.object({
   code: z
     .string()
     .min(1, 'Veuillez saisir le code OTP.')
-    .regex(/^\d{6}$/, 'Le code OTP doit comporter exactement 6 chiffres.'),
+    .regex(/^\d{6}$/, 'Le code OTP est invalide.'),
 })
 
 export const npiEmailStepSchema = z

@@ -252,8 +252,7 @@ export function FormulaireDepotNpi() {
               Vérification CNSS
             </CardTitle>
             <CardDescription>
-              Saisissez votre numéro CNSS travailleur pour confirmer votre inscription
-              au référentiel.
+              Veuillez saisir votre numéro CNSS travailleur.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -331,7 +330,7 @@ export function FormulaireDepotNpi() {
       {currentStep === 1 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Numéro NPI</CardTitle>
+            <CardTitle>NPI</CardTitle>
             <CardDescription>
               Saisissez votre NPI pour vérification.
             </CardDescription>
@@ -344,7 +343,7 @@ export function FormulaireDepotNpi() {
             >
               <div className="space-y-1.5">
                 <Label htmlFor="npi" required>
-                  Numéro NPI
+                  NPI
                 </Label>
                 <Input
                   id="npi"
@@ -477,7 +476,7 @@ export function FormulaireDepotNpi() {
               Vérification OTP
             </CardTitle>
             <CardDescription>
-              Un code à 6 chiffres a été envoyé à{' '}
+              Un code OTP a été envoyé à{' '}
               <span className="font-medium text-cnss-800">{emailMasque}</span>.
             </CardDescription>
           </CardHeader>
@@ -562,11 +561,10 @@ export function FormulaireDepotNpi() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IdCard className="size-5 text-cnss-700" aria-hidden="true" />
-              Identité ANIP
+              Identité
             </CardTitle>
             <CardDescription>
-              Vos informations ont été récupérées auprès de l&apos;ANIP. Confirmez
-              l&apos;adresse électronique de la demande.
+              Vos informations personnelles.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -611,20 +609,15 @@ export function FormulaireDepotNpi() {
 
             {useSameEmail === null ? (
               <div className="space-y-4">
-                <Alert variant="info">
-                  Souhaitez-vous utiliser l&apos;adresse{' '}
-                  <strong>{emailMasque}</strong> (celle du code OTP) pour recevoir
-                  les notifications de cette demande ?
-                </Alert>
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Button
                     type="button"
                     className="w-full sm:w-auto"
                     onClick={() => askConfirmDepot(otpEmail, otpEmailConfirmation)}
                   >
-                    Oui, utiliser cette adresse
+                    Continuer
                   </Button>
-                  <Button
+                  {/* <Button
                     type="button"
                     variant="outline"
                     className="w-full sm:w-auto"
@@ -632,7 +625,7 @@ export function FormulaireDepotNpi() {
                     disabled={deposerNpiMutation.isPending}
                   >
                     Non, en saisir une autre
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             ) : null}

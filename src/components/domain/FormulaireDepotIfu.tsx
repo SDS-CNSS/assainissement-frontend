@@ -217,8 +217,7 @@ export function FormulaireDepotIfu() {
               Vérification CNSS
             </CardTitle>
             <CardDescription>
-              Saisissez votre numéro CNSS employeur pour confirmer votre inscription
-              au référentiel.
+              Veuillez saisir votre numéro CNSS employeur.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -413,7 +412,7 @@ export function FormulaireDepotIfu() {
               Vérification OTP
             </CardTitle>
             <CardDescription>
-              Un code à 6 chiffres a été envoyé à{' '}
+              Un code OTP a été envoyé à{' '}
               <span className="font-medium text-cnss-800">{emailMasque}</span>.
             </CardDescription>
           </CardHeader>
