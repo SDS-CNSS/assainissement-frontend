@@ -305,11 +305,6 @@ export function SuiviPage() {
                 </div>
               </CardContent>
             </Card>
-
-            <p className="text-center text-xs text-slate-500">
-              Les informations affichées sont masquées pour protéger vos données
-              personnelles.
-            </p>
           </div>
         ) : null}
       </section>
