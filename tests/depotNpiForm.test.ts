@@ -6,27 +6,36 @@ import {
 } from '@/features/demandes/schemas'
 
 describe('otpStepSchema — RG-06', () => {
-  it('rejette un code OTP de moins de 6 chiffres', () => {
-    const result = otpStepSchema.safeParse({ code: '12345' })
+  it('rejette un code OTP de moins de 6 caractères', () => {
+    const result = otpStepSchema.safeParse({ code: '12A45' })
 
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.code).toContain(
-        'Le code OTP doit comporter exactement 6 chiffres.',
+        'Le code OTP est invalide.',
       )
     }
   })
 
-  it('rejette un code OTP contenant des lettres', () => {
-    const result = otpStepSchema.safeParse({ code: '12345A' })
+  it('rejette un code OTP avec caractères spéciaux', () => {
+    const result = otpStepSchema.safeParse({ code: '12A45!' })
 
     expect(result.success).toBe(false)
   })
 
-  it('accepte un code OTP de 6 chiffres', () => {
-    const result = otpStepSchema.safeParse({ code: '482910' })
+  it('accepte un code OTP alphanumérique en majuscules', () => {
+    const result = otpStepSchema.safeParse({ code: 'A4B291' })
 
     expect(result.success).toBe(true)
+  })
+
+  it('normalise un code OTP saisi en minuscules', () => {
+    const result = otpStepSchema.safeParse({ code: 'a4b291' })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.code).toBe('A4B291')
+    }
   })
 })
 
@@ -60,7 +69,7 @@ describe('npiSchema', () => {
     const result = npiSchema.safeParse({
       numeroCNSS: '2000111222',
       npi: '1234567890123456',
-      code: '482910',
+      code: 'A4B291',
       email: 'jean.dupont@mail.bj',
       emailConfirmation: 'jean.dupont@mail.bj',
     })

@@ -509,12 +509,17 @@ export function FormulaireDepotNpi() {
                 </Label>
                 <Input
                   id="code"
-                  inputMode="numeric"
+                  inputMode="text"
                   autoComplete="one-time-code"
-                  placeholder="000000"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  placeholder="A1B2C3"
                   maxLength={6}
+                  className="uppercase tracking-widest"
                   hasError={Boolean(otpForm.formState.errors.code)}
-                  {...otpForm.register('code')}
+                  {...otpForm.register('code', {
+                    setValueAs: (value: string) => value.toUpperCase(),
+                  })}
                 />
                 {otpForm.formState.errors.code ? (
                   <p className="text-sm text-statut-rejetee" role="alert">

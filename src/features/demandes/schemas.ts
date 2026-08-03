@@ -68,12 +68,13 @@ export const npiStepSchema = z.object({
     .regex(/^\d{16}$/, 'Numéro NPI incorrect'),
 })
 
-/** RG-06 : code OTP à 6 chiffres. */
+/** RG-06 : OTP alphanumérique — 6 caractères (4 chiffres + 2 lettres majuscules). */
 export const otpStepSchema = z.object({
   code: z
     .string()
     .min(1, 'Veuillez saisir le code OTP.')
-    .regex(/^\d{6}$/, 'Le code OTP est invalide.'),
+    .transform((value) => value.trim().toUpperCase())
+    .pipe(z.string().regex(/^[A-Z0-9]{6}$/, 'Le code OTP est invalide.')),
 })
 
 export const npiEmailStepSchema = z
