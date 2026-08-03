@@ -273,13 +273,6 @@ export function SuiviPage() {
                       label="Numéro CNSS"
                       value={result.numeroCNSS}
                     />
-                    {result.numeroApiex ? (
-                      <InfoTile
-                        icon={Hash}
-                        label="Numéro APIEX"
-                        value={result.numeroApiex}
-                      />
-                    ) : null}
                     {result.raisonSocialeCNSS ? (
                       <InfoTile
                         icon={Building2}

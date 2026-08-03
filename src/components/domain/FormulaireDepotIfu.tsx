@@ -89,8 +89,8 @@ export function FormulaireDepotIfu() {
   const onCnssSubmit = (values: CnssEmployeurStepValues) => {
     verifyCnss.mutate(values.numeroCNSS, {
       onSuccess: (data) => {
-        // Toujours le num_cnss canonique (même si l'utilisateur a saisi l'APIEX).
-        setNumeroCNSS(data.numeroCNSS ?? values.numeroCNSS)
+        // Conserver la saisie d'origine (CNSS ou APIEX) pour le dépôt / suivi.
+        setNumeroCNSS(values.numeroCNSS)
         setRaisonSocialeCnss(data.raisonSociale ?? '')
         setCurrentStep(1)
       },

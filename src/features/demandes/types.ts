@@ -96,5 +96,4 @@ export interface SuiviDemandeResponse {
   npi?: string
   nomAnip?: string
   prenomAnip?: string
-  numeroApiex?: string
 }
