@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from 'react-router-dom'
-import { CheckCircle2, IdCard, Mail, Users } from 'lucide-react'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link } from "react-router-dom";
+import { CheckCircle2, IdCard, Mail, Users } from "lucide-react";
 import {
   Alert,
   Button,
@@ -13,11 +13,11 @@ import {
   CardTitle,
   Input,
   Label,
-} from '@/components/ui'
-import { getApiErrorMessage } from '@/api/types'
-import { ConfirmDialog } from '@/components/domain/ConfirmDialog'
-import { Stepper } from '@/components/domain/Stepper'
-import { noClipboardInputProps } from '@/lib/blockFieldClipboard'
+} from "@/components/ui";
+import { getApiErrorMessage } from "@/api/types";
+import { ConfirmDialog } from "@/components/domain/ConfirmDialog";
+import { Stepper } from "@/components/domain/Stepper";
+import { noClipboardInputProps } from "@/lib/blockFieldClipboard";
 import {
   cnssTravailleurStepSchema,
   npiEmailStepSchema,
@@ -27,84 +27,84 @@ import {
   type NpiEmailStepValues,
   type NpiStepValues,
   type OtpStepValues,
-} from '@/features/demandes/schemas'
+} from "@/features/demandes/schemas";
 import {
   useDemanderOtpNpi,
   useDeposerNpi,
   useVerifierNpiAnip,
   useVerifierOtp,
   useVerifyTravailleurCnss,
-} from '@/features/demandes/hooks'
+} from "@/features/demandes/hooks";
 
 const STEPS = [
-  { id: 'cnss', label: 'CNSS' },
-  { id: 'npi', label: 'NPI' },
-  { id: 'email', label: 'Courriel' },
-  { id: 'otp', label: 'OTP' },
-  { id: 'recap', label: 'Récapitulatif' },
-  { id: 'confirmation', label: 'Confirmation' },
-] as const
+  { id: "cnss", label: "CNSS" },
+  { id: "npi", label: "NPI" },
+  { id: "email", label: "Courriel" },
+  { id: "otp", label: "OTP" },
+  { id: "recap", label: "Récapitulatif" },
+  { id: "confirmation", label: "Confirmation" },
+] as const;
 
 interface AnipIdentite {
-  npi: string
-  nom: string
-  prenom: string
-  telephoneMasque?: string
+  npi: string;
+  nom: string;
+  prenom: string;
+  telephoneMasque?: string;
 }
 
 export function FormulaireDepotNpi() {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [cnssVerified, setCnssVerified] = useState(false)
-  const [numeroCNSS, setNumeroCNSS] = useState('')
-  const [npi, setNpi] = useState('')
-  const [otpEmail, setOtpEmail] = useState('')
-  const [otpEmailConfirmation, setOtpEmailConfirmation] = useState('')
-  const [sessionToken, setSessionToken] = useState('')
-  const [emailMasque, setEmailMasque] = useState('')
-  const [otpCode, setOtpCode] = useState('')
-  const [anipIdentite, setAnipIdentite] = useState<AnipIdentite | null>(null)
-  const [useSameEmail, setUseSameEmail] = useState<boolean | null>(null)
-  const [numeroDemande, setNumeroDemande] = useState('')
-  const [confirmDepotOpen, setConfirmDepotOpen] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0);
+  const [cnssVerified, setCnssVerified] = useState(false);
+  const [numeroCNSS, setNumeroCNSS] = useState("");
+  const [npi, setNpi] = useState("");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpEmailConfirmation, setOtpEmailConfirmation] = useState("");
+  const [sessionToken, setSessionToken] = useState("");
+  const [emailMasque, setEmailMasque] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [anipIdentite, setAnipIdentite] = useState<AnipIdentite | null>(null);
+  const [useSameEmail, setUseSameEmail] = useState<boolean | null>(null);
+  const [numeroDemande, setNumeroDemande] = useState("");
+  const [confirmDepotOpen, setConfirmDepotOpen] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<NpiEmailStepValues | null>(
     null,
-  )
+  );
 
-  const verifyCnss = useVerifyTravailleurCnss()
-  const verifierNpi = useVerifierNpiAnip()
-  const demanderOtp = useDemanderOtpNpi()
-  const verifierOtpMutation = useVerifierOtp()
-  const deposerNpiMutation = useDeposerNpi()
+  const verifyCnss = useVerifyTravailleurCnss();
+  const verifierNpi = useVerifierNpiAnip();
+  const demanderOtp = useDemanderOtpNpi();
+  const verifierOtpMutation = useVerifierOtp();
+  const deposerNpiMutation = useDeposerNpi();
 
   const cnssForm = useForm<CnssTravailleurStepValues>({
     resolver: zodResolver(cnssTravailleurStepSchema),
-    defaultValues: { numeroCNSS: '' },
-  })
+    defaultValues: { numeroCNSS: "" },
+  });
 
   const npiForm = useForm<NpiStepValues>({
     resolver: zodResolver(npiStepSchema),
-    defaultValues: { npi: '' },
-  })
+    defaultValues: { npi: "" },
+  });
 
   const emailForm = useForm<NpiEmailStepValues>({
     resolver: zodResolver(npiEmailStepSchema),
-    defaultValues: { email: '', emailConfirmation: '' },
-  })
+    defaultValues: { email: "", emailConfirmation: "" },
+  });
 
   const otpForm = useForm<OtpStepValues>({
     resolver: zodResolver(otpStepSchema),
-    defaultValues: { code: '' },
-  })
+    defaultValues: { code: "" },
+  });
 
   const finalEmailForm = useForm<NpiEmailStepValues>({
     resolver: zodResolver(npiEmailStepSchema),
-    defaultValues: { email: '', emailConfirmation: '' },
-  })
+    defaultValues: { email: "", emailConfirmation: "" },
+  });
 
   const askConfirmDepot = (email: string, emailConfirmation: string) => {
-    setPendingEmail({ email, emailConfirmation })
-    setConfirmDepotOpen(true)
-  }
+    setPendingEmail({ email, emailConfirmation });
+    setConfirmDepotOpen(true);
+  };
 
   const finishDepot = (email: string, emailConfirmation: string) => {
     deposerNpiMutation.mutate(
@@ -116,43 +116,43 @@ export function FormulaireDepotNpi() {
       },
       {
         onSuccess: (data) => {
-          setConfirmDepotOpen(false)
-          setPendingEmail(null)
-          setNumeroDemande(data.numeroDemande)
-          setCurrentStep(5)
+          setConfirmDepotOpen(false);
+          setPendingEmail(null);
+          setNumeroDemande(data.numeroDemande);
+          setCurrentStep(5);
         },
         onError: () => {
-          setConfirmDepotOpen(false)
+          setConfirmDepotOpen(false);
         },
       },
-    )
-  }
+    );
+  };
 
   const confirmDepot = () => {
-    if (!pendingEmail) return
-    finishDepot(pendingEmail.email, pendingEmail.emailConfirmation)
-  }
+    if (!pendingEmail) return;
+    finishDepot(pendingEmail.email, pendingEmail.emailConfirmation);
+  };
 
   const onCnssSubmit = (values: CnssTravailleurStepValues) => {
     verifyCnss.mutate(values.numeroCNSS, {
       onSuccess: () => {
-        setNumeroCNSS(values.numeroCNSS)
-        setCnssVerified(true)
+        setNumeroCNSS(values.numeroCNSS);
+        setCnssVerified(true);
       },
-    })
-  }
+    });
+  };
 
   const onNpiSubmit = (values: NpiStepValues) => {
     verifierNpi.mutate(
       { numeroCNSS, npi: values.npi },
       {
         onSuccess: () => {
-          setNpi(values.npi)
-          setCurrentStep(2)
+          setNpi(values.npi);
+          setCurrentStep(2);
         },
       },
-    )
-  }
+    );
+  };
 
   const sendOtp = (values: NpiEmailStepValues, goNext: boolean) => {
     demanderOtp.mutate(
@@ -164,81 +164,81 @@ export function FormulaireDepotNpi() {
       },
       {
         onSuccess: (data) => {
-          setOtpEmail(values.email)
-          setOtpEmailConfirmation(values.emailConfirmation)
-          setSessionToken(data.sessionToken)
-          setEmailMasque(data.emailMasque)
-          otpForm.reset({ code: '' })
+          setOtpEmail(values.email);
+          setOtpEmailConfirmation(values.emailConfirmation);
+          setSessionToken(data.sessionToken);
+          setEmailMasque(data.emailMasque);
+          otpForm.reset({ code: "" });
           if (goNext) {
-            setCurrentStep(3)
+            setCurrentStep(3);
           }
         },
       },
-    )
-  }
+    );
+  };
 
   const onEmailSubmit = (values: NpiEmailStepValues) => {
-    sendOtp(values, true)
-  }
+    sendOtp(values, true);
+  };
 
   const onResendOtp = () => {
-    sendOtp({ email: otpEmail, emailConfirmation: otpEmailConfirmation }, false)
-  }
+    sendOtp(
+      { email: otpEmail, emailConfirmation: otpEmailConfirmation },
+      false,
+    );
+  };
 
   const onOtpSubmit = (values: OtpStepValues) => {
     verifierOtpMutation.mutate(
       { sessionToken, code: values.code },
       {
         onSuccess: (data) => {
-          setOtpCode(values.code)
+          setOtpCode(values.code);
           setAnipIdentite({
             npi: data.npi ?? npi,
-            nom: data.nom ?? '',
-            prenom: data.prenom ?? '',
+            nom: data.nom ?? "",
+            prenom: data.prenom ?? "",
             telephoneMasque: data.telephoneMasque,
-          })
-          setUseSameEmail(null)
-          finalEmailForm.reset({ email: '', emailConfirmation: '' })
-          setCurrentStep(4)
+          });
+          setUseSameEmail(null);
+          finalEmailForm.reset({ email: "", emailConfirmation: "" });
+          setCurrentStep(4);
         },
       },
-    )
-  }
+    );
+  };
 
   const cnssError = verifyCnss.isError
     ? getApiErrorMessage(
         verifyCnss.error,
-        'Impossible de vérifier le numéro CNSS. Veuillez réessayer.',
+        "Impossible de vérifier le numéro CNSS. Veuillez réessayer.",
       )
-    : null
+    : null;
 
   const npiError = verifierNpi.isError
-    ? getApiErrorMessage(
-        verifierNpi.error,
-        'Numéro NPI incorrect',
-      )
-    : null
+    ? getApiErrorMessage(verifierNpi.error, "Numéro NPI incorrect")
+    : null;
 
   const otpRequestError = demanderOtp.isError
     ? getApiErrorMessage(
         demanderOtp.error,
-        'Impossible d\'envoyer le code OTP. Veuillez réessayer.',
+        "Impossible d'envoyer le code OTP. Veuillez réessayer.",
       )
-    : null
+    : null;
 
   const otpVerifyError = verifierOtpMutation.isError
     ? getApiErrorMessage(
         verifierOtpMutation.error,
-        'Code OTP incorrect ou expiré. Veuillez réessayer.',
+        "Code OTP incorrect ou expiré. Veuillez réessayer.",
       )
-    : null
+    : null;
 
   const depotError = deposerNpiMutation.isError
     ? getApiErrorMessage(
         deposerNpiMutation.error,
-        'Impossible d\'enregistrer votre demande. Veuillez réessayer.',
+        "Impossible d'enregistrer votre demande. Veuillez réessayer.",
       )
-    : null
+    : null;
 
   return (
     <div className="min-w-0 space-y-6 sm:space-y-8">
@@ -273,9 +273,9 @@ export function FormulaireDepotNpi() {
                     variant="outline"
                     className="w-full sm:w-auto"
                     onClick={() => {
-                      setCnssVerified(false)
-                      setNumeroCNSS('')
-                      cnssForm.reset({ numeroCNSS: '' })
+                      setCnssVerified(false);
+                      setNumeroCNSS("");
+                      cnssForm.reset({ numeroCNSS: "" });
                     }}
                   >
                     Modifier
@@ -305,7 +305,7 @@ export function FormulaireDepotNpi() {
                     autoComplete="off"
                     placeholder="Ex. 2000111222"
                     hasError={Boolean(cnssForm.formState.errors.numeroCNSS)}
-                    {...cnssForm.register('numeroCNSS')}
+                    {...cnssForm.register("numeroCNSS")}
                   />
                   {cnssForm.formState.errors.numeroCNSS ? (
                     <p className="text-sm text-statut-rejetee" role="alert">
@@ -352,7 +352,7 @@ export function FormulaireDepotNpi() {
                   placeholder="1234567890123456"
                   maxLength={16}
                   hasError={Boolean(npiForm.formState.errors.npi || npiError)}
-                  {...npiForm.register('npi')}
+                  {...npiForm.register("npi")}
                 />
                 {npiForm.formState.errors.npi ? (
                   <p className="text-sm text-statut-rejetee" role="alert">
@@ -418,7 +418,7 @@ export function FormulaireDepotNpi() {
                   id="email"
                   type="email"
                   hasError={Boolean(emailForm.formState.errors.email)}
-                  {...emailForm.register('email')}
+                  {...emailForm.register("email")}
                   {...noClipboardInputProps}
                 />
                 {emailForm.formState.errors.email ? (
@@ -435,8 +435,10 @@ export function FormulaireDepotNpi() {
                 <Input
                   id="emailConfirmation"
                   type="email"
-                  hasError={Boolean(emailForm.formState.errors.emailConfirmation)}
-                  {...emailForm.register('emailConfirmation')}
+                  hasError={Boolean(
+                    emailForm.formState.errors.emailConfirmation,
+                  )}
+                  {...emailForm.register("emailConfirmation")}
                   {...noClipboardInputProps}
                 />
                 {emailForm.formState.errors.emailConfirmation ? (
@@ -476,14 +478,14 @@ export function FormulaireDepotNpi() {
               Vérification OTP
             </CardTitle>
             <CardDescription>
-              Un code OTP a été envoyé à{' '}
+              Un code OTP a été envoyé à{" "}
               <span className="font-medium text-cnss-800">{emailMasque}</span>.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Alert variant="info" className="mb-4">
-              Le code est valable 5 minutes. Après 3 tentatives incorrectes, vous
-              devrez relancer la demande.
+              Le code est valable 5 minutes. Après 3 tentatives incorrectes,
+              vous devrez relancer la demande.
             </Alert>
 
             {otpRequestError ? (
@@ -517,7 +519,7 @@ export function FormulaireDepotNpi() {
                   maxLength={6}
                   className="uppercase tracking-widest"
                   hasError={Boolean(otpForm.formState.errors.code)}
-                  {...otpForm.register('code', {
+                  {...otpForm.register("code", {
                     setValueAs: (value: string) => value.toUpperCase(),
                   })}
                 />
@@ -550,7 +552,11 @@ export function FormulaireDepotNpi() {
                   variant="ghost"
                   className="w-full sm:w-auto"
                   onClick={onResendOtp}
-                  disabled={demanderOtp.isPending || verifierOtpMutation.isPending || !otpEmail}
+                  disabled={
+                    demanderOtp.isPending ||
+                    verifierOtpMutation.isPending ||
+                    !otpEmail
+                  }
                   isLoading={demanderOtp.isPending}
                 >
                   Renvoyer le code
@@ -568,9 +574,7 @@ export function FormulaireDepotNpi() {
               <IdCard className="size-5 text-cnss-700" aria-hidden="true" />
               Identité
             </CardTitle>
-            <CardDescription>
-              Vos informations personnelles.
-            </CardDescription>
+            <CardDescription>Vos informations personnelles.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <dl className="grid gap-3 rounded-xl border border-cnss-100 bg-cnss-50/60 p-4 sm:grid-cols-2">
@@ -617,8 +621,18 @@ export function FormulaireDepotNpi() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Button
                     type="button"
+                    variant="outline"
                     className="w-full sm:w-auto"
-                    onClick={() => askConfirmDepot(otpEmail, otpEmailConfirmation)}
+                    onClick={() => setCurrentStep(2)}
+                  >
+                    Retour
+                  </Button>
+                  <Button
+                    type="button"
+                    className="w-full sm:w-auto"
+                    onClick={() =>
+                      askConfirmDepot(otpEmail, otpEmailConfirmation)
+                    }
                   >
                     Continuer
                   </Button>
@@ -644,8 +658,8 @@ export function FormulaireDepotNpi() {
                 noValidate
               >
                 <p className="text-sm text-slate-600">
-                  Saisissez l&apos;adresse électronique à utiliser pour les notifications
-                  de dépôt et de décision.
+                  Saisissez l&apos;adresse électronique à utiliser pour les
+                  notifications de dépôt et de décision.
                 </p>
                 <div className="space-y-1.5">
                   <Label htmlFor="finalEmail" required>
@@ -655,7 +669,7 @@ export function FormulaireDepotNpi() {
                     id="finalEmail"
                     type="email"
                     hasError={Boolean(finalEmailForm.formState.errors.email)}
-                    {...finalEmailForm.register('email')}
+                    {...finalEmailForm.register("email")}
                     {...noClipboardInputProps}
                   />
                   {finalEmailForm.formState.errors.email ? (
@@ -674,12 +688,15 @@ export function FormulaireDepotNpi() {
                     hasError={Boolean(
                       finalEmailForm.formState.errors.emailConfirmation,
                     )}
-                    {...finalEmailForm.register('emailConfirmation')}
+                    {...finalEmailForm.register("emailConfirmation")}
                     {...noClipboardInputProps}
                   />
                   {finalEmailForm.formState.errors.emailConfirmation ? (
                     <p className="text-sm text-statut-rejetee" role="alert">
-                      {finalEmailForm.formState.errors.emailConfirmation.message}
+                      {
+                        finalEmailForm.formState.errors.emailConfirmation
+                          .message
+                      }
                     </p>
                   ) : null}
                 </div>
@@ -693,10 +710,7 @@ export function FormulaireDepotNpi() {
                   >
                     Retour
                   </Button>
-                  <Button
-                    type="submit"
-                    className="w-full sm:w-auto"
-                  >
+                  <Button type="submit" className="w-full sm:w-auto">
                     Déposer ma demande
                   </Button>
                 </div>
@@ -750,11 +764,11 @@ export function FormulaireDepotNpi() {
         isLoading={deposerNpiMutation.isPending}
         onConfirm={confirmDepot}
         onCancel={() => {
-          if (deposerNpiMutation.isPending) return
-          setConfirmDepotOpen(false)
-          setPendingEmail(null)
+          if (deposerNpiMutation.isPending) return;
+          setConfirmDepotOpen(false);
+          setPendingEmail(null);
         }}
       />
     </div>
-  )
+  );
 }
