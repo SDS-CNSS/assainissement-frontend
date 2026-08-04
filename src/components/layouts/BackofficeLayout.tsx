@@ -10,10 +10,8 @@ import {
   LogOut,
   Scale,
   ScrollText,
-  Shield,
   Users,
 } from "lucide-react";
-import { Button } from "@/components/ui";
 import { ConfirmDialog } from "@/components/domain/ConfirmDialog";
 import { ROLE_LABELS } from "@/features/admin/types";
 import { useAuthStore } from "@/features/auth/authStore";
