@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://cnss-assainissement-api.onrender.com/api/:path*"
+      "destination": "https://assainissement-backend.onrender.com/api/:path*"
     },
     {
       "source": "/((?!api/).*)",
