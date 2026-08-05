@@ -413,7 +413,7 @@ export function AdminAuditLogPage() {
           Journal d&apos;audit
         </h2>
         <p className="mt-1 text-slate-600">
-          Historique des actions sensibles enregistrées par le système (RG-18).
+          Historique des actions sensibles enregistrées par le système.
         </p>
       </div>
 

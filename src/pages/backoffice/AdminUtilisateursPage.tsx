@@ -276,7 +276,7 @@ export function AdminUtilisateursPage() {
       await deverrouiller.mutateAsync(utilisateur.id)
       setFeedback({
         variant: 'success',
-        message: `Compte ${utilisateur.identifiant} déverrouillé (RG-16).`,
+        message: `Compte ${utilisateur.identifiant} déverrouillé.`,
       })
     } catch (error) {
       setFeedback({

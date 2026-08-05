@@ -128,7 +128,7 @@ export function AdminDirectionsPage() {
         variant: 'error',
         message: getApiErrorMessage(
           error,
-          'Impossible de supprimer cette direction. Elle est peut-être rattachée à des utilisateurs (RG-13).',
+          'Impossible de supprimer cette direction. Elle est peut-être rattachée à des utilisateurs.',
         ),
       })
       setDeleteTarget(null)
@@ -293,7 +293,7 @@ export function AdminDirectionsPage() {
         title="Supprimer la direction"
         message={
           deleteTarget
-            ? `Supprimer la direction ${deleteTarget.abreviation} ? Cette action est impossible si des utilisateurs y sont rattachés (RG-13).`
+            ? `Supprimer la direction ${deleteTarget.abreviation} ? Cette action est impossible si des utilisateurs y sont rattachés.`
             : ''
         }
         confirmLabel="Supprimer"
